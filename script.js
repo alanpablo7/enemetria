@@ -1631,3 +1631,99 @@ redacaoButtons.forEach(button => {
         }
     });
 });
+
+// --- Modal de Instruções de Uso ---
+document.addEventListener('DOMContentLoaded', () => {
+  const showInstrBtn = document.getElementById('show-instructions');
+  const instrModal   = document.getElementById('instructions-modal');
+  const closeInstr   = document.getElementById('close-instructions');
+
+  // Abre o modal
+  showInstrBtn.addEventListener('click', () => {
+    instrModal.classList.remove('hidden-section');
+  });
+
+  // Fecha ao clicar no "×"
+  closeInstr.addEventListener('click', () => {
+    instrModal.classList.add('hidden-section');
+  });
+
+  // Fecha ao clicar fora do conteúdo
+  instrModal.addEventListener('click', e => {
+    if (e.target === instrModal) {
+      instrModal.classList.add('hidden-section');
+    }
+  });
+});
+
+
+
+// --- Modal do Agente IA ---
+document.addEventListener('DOMContentLoaded', () => {
+  const iaModal      = document.getElementById('ia-agent-modal');
+  const closeIaModal = document.getElementById('close-ia-modal');
+
+  const downloadBtn1 = document.getElementById('download-report');
+  const downloadBtn2 = document.getElementById('download-results'); // opcional
+
+  function openIaModal() {
+    iaModal.classList.remove('hidden-section');
+  }
+
+  if (downloadBtn1) {
+    downloadBtn1.addEventListener('click', () => {
+      setTimeout(openIaModal, 300); // pequeno atraso para garantir o download antes de abrir
+    });
+  }
+
+  if (downloadBtn2) {
+    downloadBtn2.addEventListener('click', () => {
+      setTimeout(openIaModal, 300);
+    });
+  }
+
+  closeIaModal.addEventListener('click', () => {
+    iaModal.classList.add('hidden-section');
+  });
+
+  iaModal.addEventListener('click', (e) => {
+    if (e.target === iaModal) {
+      iaModal.classList.add('hidden-section');
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const newSimBtn = document.getElementById('new-simulation');
+
+  if (newSimBtn) {
+    newSimBtn.addEventListener('click', () => {
+      const confirmar = confirm("Tem certeza que deseja iniciar uma nova simulação? Isso apagará todos os dados desta simulação.");
+      if (confirmar) {
+        location.reload(); // Recarrega a página
+      }
+
+
+    });
+  }
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // — Instruções de Uso (já existente) …
+  // — Modal do Agente IA (já existente) …
+  // — Nova Simulação (já existente) …
+
+  // — Confirmação ao Finalizar Prova ——
+  const finishBtn = document.getElementById('finish-exam');
+  if (finishBtn) {
+    finishBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm("Tem certeza que deseja finalizar a prova? Após isso, não será possível alterar nada.")) {
+        document.getElementById('download-report').disabled = false;
+      }
+    });
+  }
+});
+
+
