@@ -59,6 +59,12 @@ document.addEventListener('DOMContentLoaded', function() {
         countdownTimer: document.getElementById('countdown-timer')
     };
 
+	// ---------- Controle de revisões ----------
+	const answers = {};                // { 136: 'd', ... }
+	const revisions = [];              // [{question:136, from:'D', to:'E'}, ...]
+	// -----------------------------------------
+
+
     const controls = {
         startSetup: document.getElementById('start-setup'),
         startExam: document.getElementById('start-exam'),
@@ -329,8 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleDownloadReport() {
         // Gerar relatório
-        const report = generateReport();
-        
+        let report = generateReport();
+   
         // Criar blob e link para download
         const blob = new Blob([report], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -386,6 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleNewSimulation() {
         // Resetar estado
         resetState();
+   
+ // ─── Limpa revisões ───
+    revisions.length = 0;
+    document.getElementById('revision-count').textContent = '0';
+    for (const q in answers) delete answers[q];
+    // ───────────────────────
+
         
         // Voltar para a tela inicial
         hideAllSections();
@@ -1003,6 +1016,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Salvar resposta
         state.answers[state.activeQuestion] = selectedAlternative.value;
+
+    // ─── Registra revisão ───
+    const previous = answers[state.activeQuestion];
+    const newValue = selectedAlternative.value;
+    if (previous && previous !== newValue) {
+        revisions.push({
+            question: Number(state.activeQuestion),
+            from: previous.toUpperCase(),
+            to:   newValue.toUpperCase()
+        });
+        document.getElementById('revision-count').textContent = revisions.length;
+    }
+    answers[state.activeQuestion] = newValue;
+    // ────────────────────────
+
         
         // Atualizar interface
         const questionButton = document.querySelector(`.question-button[data-question="${state.activeQuestion}"]`);
@@ -1137,7 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generateReport() {
-        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 2.3 ===\n\n`;
+        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 2.5 ===\n\n`;
         report += `Programa criando por: Pablo de Lima - todos os direitos reservado - e-mail: alanpablolima7@gmail.com\n\n\n`;
         
         // Informações da prova
@@ -1154,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         report += `Questões Respondidas: ${state.metrics.answeredQuestions} de ${getTotalQuestions()}\n`;
         report += `Questões Puladas: ${state.metrics.skippedQuestions}\n`;
         report += `Questões Puladas, mas respondidas: ${state.metrics.skippedCorrectCount}\n`;
+	report += `Questões Revisadas: ${revisions.length}\n\n`;
         report += `Tempo Médio por Questão: ${state.metrics.averageTimePerQuestion}\n\n`;
         
         // Tempo por área
@@ -1231,8 +1260,20 @@ document.addEventListener('DOMContentLoaded', function() {
         	const tempo = state.questionTimes[q] ? formatTime(state.questionTimes[q]) : '—';
         	const resposta = state.answers[q] ? state.answers[q].toUpperCase() : '—';
         	report += `Questão ${q}: Tempo = ${tempo}, Resposta = ${resposta}\n`;
-    }
-}
+    		}
+	}
+
+ // ─── Bloco de revisões ───
+  report += `\n=== QUESTÕES REVISADAS ===\n`;
+  if (revisions.length === 0) {
+       report += `Nenhuma questão revisada.\n`;
+   } else {
+       report += revisions
+           .map(r => `Questão ${r.question}: ${r.from} -> ${r.to}`)
+           .join('\n') + '\n';
+   }
+   report += '\n';
+ // ───────────────────────────
 
         
         
