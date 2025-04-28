@@ -39,9 +39,16 @@
                 </div>
 
                 <div class="setup-group">
-                    <label for="exam-book">Número do Caderno:</label>
-                    <input type="number" id="exam-book" min="1" max="20" required>
-                </div>
+    		    <label for="exam-book">Número do Caderno:</label>
+  		    <select id="exam-book" required>
+        		<option value="" disabled selected>Selecione o número</option>
+       			<option value="1">1</option>
+        		<option value="2">2</option>
+        		<option value="3">3</option>
+        		<option value="4">4</option>
+        		<option value="5">5</option>
+    		    </select>
+		</div>
 
                 <div class="setup-group">
                     <label for="exam-color">Cor do Caderno:</label>
