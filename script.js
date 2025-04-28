@@ -1189,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generateReport() {
-        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 2.5 ===\n\n`;
+        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.4 ===\n\n`;
         report += `Programa criando por: Pablo de Lima - todos os direitos reservado - e-mail: alanpablolima7@gmail.com\n\n\n`;
         
         // Informações da prova
