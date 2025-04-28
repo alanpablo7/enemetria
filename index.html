@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENEMetria - Simule. Meça. Evolua.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>ENEMetria</h1>
+            <p class="slogan">Simule. Meça. Evolua.</p>
+        </div>
+    </header>
+
+    <main>
+        <section id="initial-setup" class="active-section">
+            <h2>Configuração da Simulação</h2>
+            <div class="setup-container">
+                <div class="setup-group">
+                    <label for="exam-day">Dia da Prova:</label>
+                    <select id="exam-day" required>
+                        <option value="" disabled selected>Selecione o dia</option>
+                        <option value="primeiro">Primeiro Dia (Linguagens, Humanas e Redação)</option>
+                        <option value="segundo">Segundo Dia (Natureza e Matemática)</option>
+                    </select>
+                </div>
+
+                <div class="setup-group">
+                    <label for="exam-year">Ano da Prova:</label>
+                    <select id="exam-year" required>
+                        <option value="" disabled selected>Selecione o ano</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        </select>
+                </div>
+
+                <div class="setup-group">
+                    <label for="exam-book">Número do Caderno:</label>
+                    <input type="number" id="exam-book" min="1" max="20" required>
+                </div>
+
+                <div class="setup-group">
+                    <label for="exam-color">Cor do Caderno:</label>
+                    <select id="exam-color" required>
+                        <option value="" disabled selected>Selecione a cor</option>
+                        <option value="amarelo">Amarelo</option>
+                    </select>
+                </div>
+
+                <div class="setup-group">
+                    <label for="exam-type">Tipo de Aplicação:</label>
+                    <select id="exam-type" required>
+                        <option value="" disabled selected>Selecione o tipo</option>
+                        <option value="regular">Aplicação Regular</option>
+                    </select>
+                </div>
+                <div class="setup-group checkbox-group">
+                    <input type="checkbox" id="accessibility-option" name="accessibility-option">
+                    <label for="accessibility-option">Tempo adicional para pessoas com deficiência (1 hora a mais)</label>
+                </div>
+
+                <button id="start-setup" class="primary-button">Iniciar Simulação</button>
+		<button id="show-instructions" class="secondary-button">Instruções de Uso</button>
+            </div>
+        </section>
+
+        <section id="exam-controls" class="hidden-section">
+            <div class="controls-container">
+                <div class="timer-display">
+                    <div class="main-timer" id="main-timer-container">
+                        <div class="timer-header">
+                            <span id="main-timer-label">Tempo Total:</span>
+                            <span id="timer-toggle" class="timer-arrow"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div id="main-timer-value-container" class="hidden">
+                            <span id="main-timer-display">05:00:00</span>
+                        </div>
+                    </div>
+                    <div class="area-timers">
+                        <div class="area-timer" id="linguagens-timer">
+                            <span>Linguagens:</span>
+                            <span class="timer-value">00:00:00</span>
+                        </div>
+                        <div class="area-timer" id="humanas-timer">
+                            <span>Humanas:</span>
+                            <span class="timer-value">00:00:00</span>
+                        </div>
+                        <div class="area-timer" id="redacao-timer">
+                            <span>Redação:</span>
+                            <span class="timer-value">00:00:00</span>
+                        </div>
+                        <div class="area-timer" id="natureza-timer">
+                            <span>Natureza:</span>
+                            <span class="timer-value">00:00:00</span>
+                        </div>
+                        <div class="area-timer" id="matematica-timer">
+                            <span>Matemática:</span>
+                            <span class="timer-value">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-buttons">
+                    <button id="start-exam" class="control-button"><i class="fas fa-play"></i> Iniciar Prova</button>
+                    <button id="pause-exam" class="control-button" disabled><i class="fas fa-pause"></i> Pausar Prova</button>
+                    <button id="finish-exam" class="control-button" disabled><i class="fas fa-flag-checkered"></i> Finalizar Prova</button>
+                    <button id="download-report" class="control-button" disabled><i class="fas fa-download"></i> Baixar Relatório</button>
+                </div>
+                <div class="status-display">
+                    <div id="current-question-status">
+                        <span>Útima questão resolvida: </span>
+                        <span id="current-question-number">Nenhuma</span>
+                    </div>
+                    <div id="current-area-status">
+                        <span>Área: </span>
+                        <span id="current-area-name">Nenhuma</span>
+                    </div>
+                    <div id="question-timer">
+                        <span>Tempo na útima questão: </span>
+                        <span id="question-timer-value">00:00:00</span>
+                    </div>
+                </div>
+                <div class="toggle-panel">
+                    <button id="toggle-stats" class="toggle-button"><i class="fas fa-chart-bar"></i> Mostrar Estatísticas</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Janela flutuante de contagem regressiva -->
+        <div id="countdown-timer" class="hidden-section">
+            <div id="countdown-intervals-container">
+                <!-- Os intervalos de tempo serão adicionados dinamicamente pelo JavaScript -->
+            </div>
+        </div>
+
+        <section id="stats-panel" class="hidden-section">
+            <div class="stats-container">
+                <h3>Estatísticas em Tempo Real</h3>
+                <div id="stats-content">
+                    <p>As estatísticas aparecerão aqui durante a prova.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="questions-section" class="hidden-section">
+            <div class="areas-tabs">
+                <button class="area-tab" data-area="linguagens">Linguagens (01-45)</button>
+                <button class="area-tab" data-area="humanas">Humanas (46-90)</button>
+                <button class="area-tab" data-area="redacao">Redação</button>
+                <button class="area-tab" data-area="natureza">Natureza (91-135)</button>
+                <button class="area-tab" data-area="matematica">Matemática (136-180)</button>
+            </div>
+
+            <div class="questions-container">
+                <!-- Linguagens -->
+                <div class="area-questions" id="linguagens-questions">
+                    <h3>Linguagens, Códigos e suas Tecnologias (Questões 01-45)</h3>
+                    <div class="questions-grid">
+                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Humanas -->
+                <div class="area-questions" id="humanas-questions">
+                    <h3>Ciências Humanas e suas Tecnologias (Questões 46-90)</h3>
+                    <div class="questions-grid">
+                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Redação -->
+                <div class="area-questions" id="redacao-questions">
+                    <h3>Redação</h3>
+                    <div class="redacao-container">
+                        <button id="redacao-rascunho" class="redacao-button">Rascunho da Redação</button>
+                        <button id="redacao-final" class="redacao-button">Redação Final</button>
+                    </div>
+                </div>
+
+                <!-- Natureza -->
+                <div class="area-questions" id="natureza-questions">
+                    <h3>Ciências da Natureza e suas Tecnologias (Questões 91-135)</h3>
+                    <div class="questions-grid">
+                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Matemática -->
+                <div class="area-questions" id="matematica-questions">
+                    <h3>Matemática e suas Tecnologias (Questões 136-180)</h3>
+                    <div class="questions-grid">
+                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+     <section id="question-modal" class="modal hidden-section">
+         <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-question-number">Questão X</h3>
+                    <span id="modal-close" class="close-button">&times;</span>
+                </div>
+              
+
+	<div class="modal-body question-flex">
+   	   <!-- NOVO: visor PDF -->
+   	   <div class="pdf-viewer-box">
+      		 <!-- src será preenchido via JS -->
+       		<iframe id="pdf-viewer"
+              	   //type="application/pdf"
+             	   src=""
+              	   style="width:100%; height:100%; border:none;">
+		</iframe>
+   	   </div>
+	   <!-- alternativas + botão -->
+	   <div class="side-panel">
+                    <div class="alternatives">
+                        <div class="alternative">
+                            <input type="radio" name="question-alternative" id="alt-a" value="a">
+                            <label for="alt-a">A</label>
+                        </div>
+                        <div class="alternative">
+                            <input type="radio" name="question-alternative" id="alt-b" value="b">
+                            <label for="alt-b">B</label>
+                        </div>
+                        <div class="alternative">
+                            <input type="radio" name="question-alternative" id="alt-c" value="c">
+                            <label for="alt-c">C</label>
+                        </div>
+                        <div class="alternative">
+                            <input type="radio" name="question-alternative" id="alt-d" value="d">
+                            <label for="alt-d">D</label>
+                        </div>
+                        <div class="alternative">
+                            <input type="radio" name="question-alternative" id="alt-e" value="e">
+                            <label for="alt-e">E</label>
+                        </div>
+		   <div class="save-wrapper">
+		   	<button id="save-answer" class="primary-button">
+				Salvar
+		   	</button>
+		   </div>
+		</div>
+            </div>
+          </div>
+        </div>	
+     </section>
+
+        <section id="results-section" class="hidden-section">
+            <h2>Resultados da Simulação</h2>
+            <div class="results-container">
+                <div class="results-summary">
+                    <h3>Resumo da Prova</h3>
+                    <div id="summary-content">
+                        <!-- Conteúdo será preenchido pelo JavaScript -->
+                    </div>
+                </div>
+                <div class="results-metrics">
+                    <h3>Métricas de Desempenho</h3>
+                    <div id="metrics-content">
+                        <!-- Conteúdo será preenchido pelo JavaScript -->
+                    </div>
+                </div>
+                <div class="results-actions">
+                    <button id="download-results" class="primary-button">Baixar Relatório Completo</button>
+                    <button id="save-history" class="primary-button">Salvar no Histórico</button>
+                    <button id="new-simulation" class="secondary-button">Nova Simulação</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="history-section" class="hidden-section">
+            <h2>Histórico de Simulações</h2>
+            <div class="history-container">
+                <div id="history-list">
+                    <!-- Histórico será preenchido pelo JavaScript -->
+                    <p>Nenhuma simulação encontrada no histórico.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+  <p>&copy; 2025 ENEMetria - Simule. Meça. Evolua.</p>
+  <p>
+    Contato: 
+    <a href="mailto:alanpablolima7@gmail.com">alanpablolima7@gmail.com</a> |
+    WhatsApp: 
+    <a href="https://wa.me/5583994021197" target="_blank">+55 (83) 99402-1197</a>
+  </p>
+</footer>
+
+    <script src="script.js"></script>
+  <!-- Modal de Instruções de Uso -->
+  <div id="instructions-modal" class="modal hidden-section">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Instruções de Uso</h3>
+      <span id="close-instructions" class="close-button">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p><strong>Como funciona o ENEMetria:</strong>  
+      O ENEMetria simula a experiência real da prova do ENEM enquanto coleta métricas de desempenho (tempo, estratégia e resultado).</p>
+
+      <h4>Como usar?</h4>
+      <ol>
+        <li>Baixe o PDF de uma prova no  
+            <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos" 
+               target="_blank">site do INEP</a>.</li>
+        <li>Nas configurações, selecione dia, ano, número, cor e tipo de aplicação do caderno de prova que você baixou e clique em <em>“Iniciar Simulação”</em>.</li>
+        <li>Clique em <em>“Iniciar Prova”</em>; o cronômetro começará a contar.</li>
+        <li>Clique na questão que deseja responder; abre-se a caixa de alternativas e inicia o contador de tempo daquela questão.</li>
+        <li>Resolva no PDF a questão que você abriu e marque a alternativa, ou feche a caixa para pular a questão.</li>
+        <li>Ao terminar, clique em <em>“Finalizar Prova”</em> e em seguida <em>“Baixar Relatório”</em>.</li>
+      </ol>
+
+      <p>Um relatório com metadados será gerado para análise pelo agente de IA.</p>
+      <p><strong>OBS:</strong> abra, marque e feche cada questão corretamente ou os metadados que medem seu desempenho ficarão imprecisos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal com link para agente IA -->
+<div id="ia-agent-modal" class="modal hidden-section">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Análise com Agente de Inteligência Artificial</h3>
+      <span id="close-ia-modal" class="close-button">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Seu relatório foi gerado com sucesso!</p>
+      <p>Para obter uma análise completa dos seus dados e receber uma mentoria personalizada sobre como melhorar seu desempenho no ENEM, envie o relatório baixado para o agente de inteligência artificial no link abaixo:</p>
+      <p style="text-align: center; margin-top: 1rem;">
+        <a href="https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-zemetria" target="_blank" style="font-size: 1.1rem; font-weight: bold; color: #3498db;">
+          Acessar Agente Professor Zé Sincero
+        </a>
+      </p>
+      <p style="margin-top: 1rem;">Esse agente vai ler os metadados contidos no relatório e te mostrar em quais áreas você precisa melhorar, oferecendo estratégias e resoluções orientadas.</p>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
