@@ -32,23 +32,10 @@
                     <label for="exam-year">Ano da Prova:</label>
                     <select id="exam-year" required>
                         <option value="" disabled selected>Selecione o ano</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
                         <option value="2023">2023</option>
                         <option value="2022">2022</option>
                         <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                        <option value="2019">2019</option>
-                        <option value="2018">2018</option>
-                        <option value="2017">2017</option>
-                        <option value="2016">2016</option>
-                        <option value="2015">2015</option>
-                        <option value="2014">2014</option>
-                        <option value="2013">2013</option>
-                        <option value="2012">2012</option>
-                        <option value="2011">2011</option>
-                        <option value="2010">2010</option>
-                    </select>
+                        </select>
                 </div>
 
                 <div class="setup-group">
@@ -61,10 +48,6 @@
                     <select id="exam-color" required>
                         <option value="" disabled selected>Selecione a cor</option>
                         <option value="amarelo">Amarelo</option>
-                        <option value="azul">Azul</option>
-			<option value="cinza">Cinza</option>
-                        <option value="rosa">Rosa</option>
-                        <option value="branco">Branco</option>
                     </select>
                 </div>
 
@@ -73,8 +56,6 @@
                     <select id="exam-type" required>
                         <option value="" disabled selected>Selecione o tipo</option>
                         <option value="regular">Aplicação Regular</option>
-                        <option value="reaplicacao">Reaplicação/PPL</option>
-                        <option value="digital">Aplicação Digital</option>
                     </select>
                 </div>
                 <div class="setup-group checkbox-group">
@@ -217,41 +198,57 @@
             </div>
         </section>
 
-        <section id="question-modal" class="modal hidden-section">
-            <div class="modal-content">
+     <section id="question-modal" class="modal hidden-section">
+         <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="modal-question-number">Questão X</h3>
                     <span id="modal-close" class="close-button">&times;</span>
                 </div>
-                <div class="modal-body">
+              
+
+	<div class="modal-body question-flex">
+   	   <!-- NOVO: visor PDF -->
+   	   <div class="pdf-viewer-box">
+      		 <!-- src será preenchido via JS -->
+       		<iframe id="pdf-viewer"
+              	   //type="application/pdf"
+             	   src=""
+              	   style="width:100%; height:100%; border:none;">
+		</iframe>
+   	   </div>
+	   <!-- alternativas + botão -->
+	   <div class="side-panel">
                     <div class="alternatives">
                         <div class="alternative">
                             <input type="radio" name="question-alternative" id="alt-a" value="a">
-                            <label for="alt-a">a) Alternativa A</label>
+                            <label for="alt-a">A</label>
                         </div>
                         <div class="alternative">
                             <input type="radio" name="question-alternative" id="alt-b" value="b">
-                            <label for="alt-b">b) Alternativa B</label>
+                            <label for="alt-b">B</label>
                         </div>
                         <div class="alternative">
                             <input type="radio" name="question-alternative" id="alt-c" value="c">
-                            <label for="alt-c">c) Alternativa C</label>
+                            <label for="alt-c">C</label>
                         </div>
                         <div class="alternative">
                             <input type="radio" name="question-alternative" id="alt-d" value="d">
-                            <label for="alt-d">d) Alternativa D</label>
+                            <label for="alt-d">D</label>
                         </div>
                         <div class="alternative">
                             <input type="radio" name="question-alternative" id="alt-e" value="e">
-                            <label for="alt-e">e) Alternativa E</label>
+                            <label for="alt-e">E</label>
                         </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="save-answer" class="primary-button">Salvar Resposta</button>
-                </div>
+		   <div class="save-wrapper">
+		   	<button id="save-answer" class="primary-button">
+				Salvar
+		   	</button>
+		   </div>
+		</div>
             </div>
-        </section>
+          </div>
+        </div>	
+     </section>
 
         <section id="results-section" class="hidden-section">
             <h2>Resultados da Simulação</h2>
