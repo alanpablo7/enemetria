@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
         countdownIntervals: []
     };
 
+    // ─── Caminho-base dos arquivos PDF  ──────────────
+    const PDF_BASE = './pdfs/';
+
     // Temporizadores
     let mainTimer;
     let questionTimer;
@@ -110,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         examColor: document.getElementById('exam-color'),
         examType: document.getElementById('exam-type'),
         accessibilityOption: document.getElementById('accessibility-option'),
-        languageGroup: document.getElementById('language-group')
+        
     };
 
     // Inicialização
@@ -515,9 +518,31 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatsDisplay();
     }
 
+
+  function buildPdfPath(questionNumber) {
+      // Ex.: pdfs/2024/regular/primeiro/amarelo.pdf#page=91
+      return `${PDF_BASE}${state.examYear}/` +
+             `${state.examType}/` +
+             `${state.examDay}/` +
+             `${state.examColor}.pdf#page=${questionNumber}`;
+  }
+
+
     function openQuestionModal(questionNumber) {
         // Configurar modal
         displays.modalQuestionNumber.textContent = `Questão ${questionNumber}`;
+	
+	// ─── PDF da questão ───────────────────────────────
+	if (!questionNumber.startsWith('redacao')) {
+	    const viewer = document.getElementById('pdf-viewer');
+	    if (viewer) viewer.src = buildPdfPath(questionNumber);
+	} else {
+ 	   // Se for redação, não exibe PDF
+ 	   const viewer = document.getElementById('pdf-viewer');
+ 	   if (viewer) viewer.src = '';
+	}
+
+
         
         // Limpar seleção anterior
         document.querySelectorAll('input[name="question-alternative"]').forEach(radio => {
@@ -1129,7 +1154,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Ano:</strong> ${state.examYear}</p>
             <p><strong>Caderno:</strong> ${state.examBook} (${state.examColor})</p>
             <p><strong>Tipo de Aplicação:</strong> ${state.examType}</p>
-            ${state.examLanguage ? `<p><strong>Linguagem Estrangeira:</strong> ${state.examLanguage}</p>` : ''}
             <p><strong>Tempo Total:</strong> ${state.metrics.totalTime}</p>
         `;
         
@@ -1613,8 +1637,7 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
         inputs.examLanguage.value = '';
         inputs.accessibilityOption.checked = false;
         
-        // Mostrar grupo de linguagem estrangeira
-        inputs.languageGroup.style.display = 'block';
+
     }
 
     // Inicializar
