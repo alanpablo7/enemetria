@@ -1455,12 +1455,9 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
     report += `3. **Analise o desempenho do aluno**, considerando:\n`;
     report += `  - Se o aluno conseguiu respondeu a prova seguindo majoritariamente a ordem das questões da prova, o que indica que ele não seguiu a estratégia de resolver as mais fáce\n`;
     report += `  - Sugira estratégias baseadas na TRI para melhorar o desempenho.\n`;
-    report += `  - verifique o tempo médio das primeiras 15 questões resolvidas pelo aluno, se for maior que 3 min significa que o aluno não está priorizando as questões fáceis, explique a ele isso.\n`;
+    report += `  - verifique o tempo médio das primeiras 15 questões resolvidas pelo aluno, se for maior que 3 min significa que o aluno não está priorizando as questões fáceis.\n`;
     report += `  - Analise o número de acertos com base no arquivo "Arq_Avaliacao_Matematica"\n`;
-    report += `4. **Faça uma avaliação crítica** e dê sugestões práticas sobre como o aluno pode melhorar o gerenciamento do tempo, especialmente em Matemática.\n\n`;
-    report += `**Apresente sua análise em tópicos claros e objetivos.**\n\n`;
-    report += `**Peça para o usuário enviar o print de cada questão que errou, uma por uma, com o tempo que gastou e qual a maior dificuldade .**\n\n\n`;
-
+    report += `4. **Peça para o usuário enviar o print de cada questão que errou, uma por uma, com o tempo que gastou e qual a maior dificuldade .**\n\n\n`;
 
     return report;
 
