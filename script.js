@@ -243,6 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Retomar prova
             state.isExamPaused = false;
             controls.pauseExam.innerHTML = '<i class="fas fa-pause"></i> Pausar Prova';
+	   // desconta o tempo em que a prova ficou pausada
+	    const resumeTime = new Date();
+	    state.pauseTime += (resumeTime - state.lastPauseStartTime) / 1000;
             
             // Se havia uma questão ativa, retomar seu cronômetro
             if (state.activeQuestion) {
@@ -346,7 +349,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ENEMetria_Relatorio_${formatDate(new Date())}.txt`;
+   // → Captura o nome do usuário e remove espaços
+   const username = document.getElementById('user-name')
+       .value.trim().toUpperCase() || 'USUARIO';
+   // → Define o nome do arquivo incluindo o nome do usuário
+   a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
+
         document.body.appendChild(a);
         a.click();
         
@@ -1441,23 +1449,9 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
 
  // === TEXTO ADICIONAL SOLICITADO ===
     report += `=== PROMPT PARA O GPT ===`;
-    report += `\nVocê recebeu dados detalhados sobre o desempenho de um aluno no simulado do ENEM, contendo:\n`;
-    report += `- **Ano da prova:** ${state.examYear}\n`;
-    report += `- **Número e cor do caderno:** ${state.examBook} (${state.examColor})\n`;
-    report += `- **Tipo de aplicação:** ${state.examType}\n`;
-    report += `- **Tempo gasto por questão em Matemática:** ${state.metrics.averageTimePerQuestion} (média) e detalhado por questão (veja seção "TEMPO POR QUESTÃO")\n`;
-    report += `- **Ordem exata de resolução das questões:** veja seção "ORDEM DE RESOLUÇÃO"\n`;
-    report += `- **Questão mais demorada:** ${questaoMaisDemorada} (${formatTime(tempoMaisDemorado)})\n`;
-    report += `- **Questão mais rápida:** ${questaoMaisRapida} (${formatTime(tempoMaisRapido)})\n\n`;
     report += `**Sua tarefa é:**\n`;
-    report += `1. **Acesse a internet** e verifique o gabarito oficial da prova, comparando-o com o gabarito apresentado pelo aluno.\n`;
-    report += `2. **Confirme as respostas certas e erradas e gere uma tabela**, de fácil entendimento, comparando o gabarito do aluno com o gabarito oficial.\n`;
-    report += `3. **Analise o desempenho do aluno**, considerando:\n`;
-    report += `  - Se o aluno conseguiu respondeu a prova seguindo majoritariamente a ordem das questões da prova, o que indica que ele não seguiu a estratégia de resolver as mais fáce\n`;
-    report += `  - Sugira estratégias baseadas na TRI para melhorar o desempenho.\n`;
-    report += `  - verifique o tempo médio das primeiras 15 questões resolvidas pelo aluno, se for maior que 3 min significa que o aluno não está priorizando as questões fáceis.\n`;
-    report += `  - Analise o número de acertos com base no arquivo "Arq_Avaliacao_Matematica"\n`;
-    report += `4. **Peça para o usuário enviar o print de cada questão que errou, uma por uma, com o tempo que gastou e qual a maior dificuldade .**\n\n\n`;
+    report += `**Peça para o usuário enviar o print de cada questão que errou, uma por uma, com gabarito, tempo que gastou e qual a maior dificuldade .**\n\n\n`;
+
 
     return report;
 
