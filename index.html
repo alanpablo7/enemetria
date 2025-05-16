@@ -73,10 +73,18 @@
   		</div>
 
 
+	<!-- INÍCIO: Upload de PDF pelo usuário -->
+	<div class="setup-group">
+	  <label for="pdf-upload">Carregar PDF da Prova:</label>
+	  <input type="file" id="pdf-upload" accept="application/pdf">
+	</div>
+	<!-- FIM: Upload de PDF pelo usuário -->
 
-
-                <button id="start-setup" class="primary-button">Iniciar Simulação</button>
-		<button id="show-instructions" class="secondary-button">Instruções de Uso</button>
+	    <button id="start-setup" class="primary-button">Iniciar Simulação</button>
+	    <!-- Coloca Instruções na mesma linha dos campos de texto -->
+	    <div class="setup-group">
+	      <button id="show-instructions" class="secondary-button small-button">Instruções de Uso</button>
+	    </div>
             </div>
         </section>
 
@@ -223,7 +231,6 @@
    	   <div class="pdf-viewer-box">
       		 <!-- src será preenchido via JS -->
        		<iframe id="pdf-viewer"
-              	   //type="application/pdf"
              	   src=""
               	   style="width:100%; height:100%; border:none;">
 		</iframe>
