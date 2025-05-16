@@ -409,6 +409,37 @@ inputs.pdfUpload.addEventListener('change', e => {
           report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
         });
 
+       // ─── Estatísticas Finais ──────────────────────────────────────
+       const total = Object.keys(gabaritoOficial).length;
+       const acertos = Object.keys(gabaritoOficial)
+         .filter(num => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
+         .length;
+       const erros = total - acertos;
+       const tempos = Object.entries(state.questionTimes)
+         .filter(([num]) => num in gabaritoOficial)
+         .map(([, t]) => t);
+       const tempoTotal = tempos.reduce((a, b) => a + b, 0);
+       const mediaGeral = tempoTotal / tempos.length;
+       const temposAcertos = Object.entries(state.questionTimes)
+         .filter(([num]) => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
+         .map(([, t]) => t);
+       const temposErros = Object.entries(state.questionTimes)
+         .filter(([num]) => (state.answers[num]||'—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
+         .map(([, t]) => t);
+       function fmt(segs) {
+         const h = Math.floor(segs/3600);
+         const m = Math.floor((segs%3600)/60);
+         const s = Math.floor(segs%60);
+         return `${h? h+'h':''}${m? m+'min':''}${s? s+'s':''}`;
+       }
+       report += `\n✅ Acertos: ${acertos} de ${total}\n`;
+       report += `❌ Erros: ${erros}\n`;
+       report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
+       report += `⏱️ Tempo médio nas que ACERTOU: ${fmt( temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length )}\n`;
+       report += `⌛ Tempo médio nas que ERROU: ${fmt( temposErros.reduce((a,b)=>a+b,0)/temposErros.length )}\n`;
+       // ────────────────────────────────────────────────────────────────
+
+
       } else {
         console.warn('gabarito.txt não encontrado em', caminhoGabarito, res.status);
       }
@@ -1276,7 +1307,7 @@ inputs.pdfUpload.addEventListener('change', e => {
     }
 
     function generateReport() {
-        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.4 ===\n\n`;
+        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.8 ===\n\n`;
         report += `Programa criando por: Pablo de Lima - todos os direitos reservado - e-mail: alanpablolima7@gmail.com\n\n\n`;
         
         // Informações da prova
