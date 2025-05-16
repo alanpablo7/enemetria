@@ -1557,11 +1557,6 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
     report += `Ordem (${areaLabels[area]}): ${ordemFinal}\n`;
 }
 
- // === TEXTO ADICIONAL SOLICITADO ===
-    report += `=== PROMPT PARA O GPT ===`;
-    report += `**Sua tarefa é:**\n`;
-    report += `**Peça para o usuário enviar o print de cada questão que errou, uma por uma, com gabarito, tempo que gastou e qual a maior dificuldade .**\n\n\n`;
-
 
     return report;
 
