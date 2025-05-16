@@ -388,8 +388,27 @@ inputs.pdfUpload.addEventListener('change', e => {
       const res = await fetch(caminhoGabarito);
       if (res.ok) {
         const gabaritoText = await res.text();
-        report += '\n=== GABARITO OFICIAL ===\n';
-        report += gabaritoText;
+      // === Gabarito Oficial vs. Suas Respostas ===
+      report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
+      report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
+      const gabaritoOficial = {};
+      // Cada linha do gabarito deve ter "número" e "alternativa" separados por espaço
+      gabaritoText.trim().split(/\r?\n/).forEach(linha => {
+        const [num, alt] = linha.trim().split(/\s+/);
+        if (num && alt) gabaritoOficial[num] = alt.toUpperCase();
+      });
+      Object.keys(gabaritoOficial)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .forEach(numero => {
+          const sua = (state.answers[numero] || '—').toUpperCase();
+          const oficial = gabaritoOficial[numero];
+          const acertou = sua === oficial ? '✅' : '❌';
+          const tempo = state.questionTimes[numero]
+            ? formatTime(state.questionTimes[numero])
+            : '—';
+          report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+        });
+
       } else {
         console.warn('gabarito.txt não encontrado em', caminhoGabarito, res.status);
       }
