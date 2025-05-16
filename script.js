@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         examBook: '',
         examColor: '',
         examType: '',
-        examLanguage: '',
+	uploadedPdfUrl: null,
         accessibilityOption: false,
         isExamStarted: false,
         isExamPaused: false,
@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentAreaStartTime: null,
         lastAreaActive: null,
         countdownIntervals: []
+    
     };
 
     // ─── Caminho-base dos arquivos PDF  ──────────────
@@ -113,8 +114,26 @@ document.addEventListener('DOMContentLoaded', function() {
         examColor: document.getElementById('exam-color'),
         examType: document.getElementById('exam-type'),
         accessibilityOption: document.getElementById('accessibility-option'),
-        
+        userName:      document.getElementById('user-name'),
+	pdfUpload:     document.getElementById('pdf-upload')
     };
+
+// ─── INÍCIO: listener para upload de PDF ───────────────────────
+inputs.pdfUpload.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) {
+    state.uploadedPdfUrl = URL.createObjectURL(file);
+    // desativa tudo exceto dia da prova
+    ['examYear','examBook','examColor','examType','accessibilityOption','userName']
+      .forEach(key => inputs[key].disabled = true);
+  } else {
+    state.uploadedPdfUrl = null;
+    ['examYear','examBook','examColor','examType','accessibilityOption','userName']
+      .forEach(key => inputs[key].disabled = false);
+  }
+});
+// ───── FIM do listener ─────────────────────────────────────────
+
 
     // Inicialização
     function init() {
@@ -178,11 +197,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manipuladores de eventos
     function handleStartSetup() {
         // Validar entradas
-        if (!validateSetupInputs()) {
-            alert('Por favor, preencha todos os campos de configuração.');
-            return;
-        }
-
+ // exige sempre Dia da Prova
+ if (!inputs.examDay.value) {
+   alert('Selecione o Dia da Prova.');
+   return;
+ }
+ 	// se não houver PDF, valida os campos normais
+ 	if (!state.uploadedPdfUrl && !validateSetupInputs()) {
+	   alert('Preencha Ano, Caderno, Cor, Tipo e Nome, ou carregue um PDF.');
+ 	   return;
+	 }
+	 // garante que, se o usuário escolheu arquivo e foi direto no botão
+	 if (!state.uploadedPdfUrl && inputs.pdfUpload.files[0]) {
+	   state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
+	 }
         // Salvar configurações
         state.examDay = inputs.examDay.value;
         state.examYear = inputs.examYear.value;
@@ -190,6 +218,14 @@ document.addEventListener('DOMContentLoaded', function() {
         state.examColor = inputs.examColor.value;
         state.examType = inputs.examType.value;
         state.accessibilityOption = inputs.accessibilityOption.checked;
+
+    	// SALVAR NOME e PDF no state
+    	state.userName       = inputs.userName.value;
+    	// se não veio pelo listener (caso o usuário carregue e clique direto em “Iniciar”)
+    	if (!state.uploadedPdfUrl && inputs.pdfUpload.files[0]) {
+  	    state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
+    	}
+
 
         // Gerar botões de questões
         generateQuestionButtons();
@@ -339,9 +375,28 @@ document.addEventListener('DOMContentLoaded', function() {
         controls.downloadReport.disabled = false;
     }
 
-    function handleDownloadReport() {
+    async function handleDownloadReport() {
         // Gerar relatório
         let report = generateReport();
+
+         // === INÍCIO DA MODIFICAÇÃO: anexar gabarito.txt na mesma pasta do PDF ===
+    try {
+      // Monta a pasta onde está o PDF (sem o #page)
+      const pastaDoPdf = `${PDF_BASE}${state.examYear}/${state.examType}/${state.examDay}/`;
+      const caminhoGabarito = `${pastaDoPdf}gabarito.txt`;
+ 
+      const res = await fetch(caminhoGabarito);
+      if (res.ok) {
+        const gabaritoText = await res.text();
+        report += '\n=== GABARITO OFICIAL ===\n';
+        report += gabaritoText;
+      } else {
+        console.warn('gabarito.txt não encontrado em', caminhoGabarito, res.status);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar gabarito.txt:', err);
+    }
+    // === FIM DA MODIFICAÇÃO ===
    
         // Criar blob e link para download
         const blob = new Blob([report], { type: 'text/plain' });
@@ -375,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
             examBook: state.examBook,
             examColor: state.examColor,
             examType: state.examType,
-            examLanguage: state.examLanguage,
+
             accessibilityOption: state.accessibilityOption,
             totalTime: state.totalTime,
             areaTimes: state.areaTimes,
@@ -538,18 +593,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openQuestionModal(questionNumber) {
         // Configurar modal
-        displays.modalQuestionNumber.textContent = `Questão ${questionNumber}`;
+        displays.modalQuestionNumber.textContent = `Questão ${questionNumber.padStart(2, '0')}`;
 	
-	// ─── PDF da questão ───────────────────────────────
-	if (!questionNumber.startsWith('redacao')) {
-	    const viewer = document.getElementById('pdf-viewer');
-	    if (viewer) viewer.src = buildPdfPath(questionNumber);
-	} else {
- 	   // Se for redação, não exibe PDF
- 	   const viewer = document.getElementById('pdf-viewer');
- 	   if (viewer) viewer.src = '';
-	}
-
+    if (!questionNumber.startsWith('redacao')) {
+         const viewer = document.getElementById('pdf-viewer');
+         if (viewer) {
+             // usa o PDF do usuário, se houver; senão, o padrão
+        if (state.uploadedPdfUrl) {
+            // abre o PDF carregado já na página da questão
+            viewer.src = `${state.uploadedPdfUrl}#page=${questionNumber}`;
+          } else {
+            viewer.src = buildPdfPath(questionNumber);
+          }
+       }
+     } else {
+         const viewer = document.getElementById('pdf-viewer');
+         if (viewer) viewer.src = '';
+     }
 
         
         // Limpar seleção anterior
@@ -1096,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 1; i <= 180; i++) {
             const button = document.createElement('button');
             button.className = 'question-button';
-            button.textContent = i;
+            button.textContent = i.toString().padStart(2, '0');
             button.dataset.question = i;
             button.addEventListener('click', () => handleQuestionClick(i.toString()));
             
@@ -1526,14 +1586,17 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
     }
 
     function validateSetupInputs() {
+	if (state.uploadedPdfUrl)   return true;
         if (!inputs.examDay.value) return false;
         if (!inputs.examYear.value) return false;
         if (!inputs.examBook.value) return false;
         if (!inputs.examColor.value) return false;
         if (!inputs.examType.value) return false;
+	if (!inputs.userName.value)  return false;
         
         return true;
     }
+
 
     function getTotalQuestions() {
         if (state.examDay === 'primeiro') {
@@ -1567,12 +1630,13 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
     }
 
     function resetState() {
-        state.examDay = '';
+        state.uploadedPdfUrl = null;
+	state.examDay = '';
         state.examYear = '';
         state.examBook = '';
         state.examColor = '';
         state.examType = '';
-        state.examLanguage = '';
+    
         state.accessibilityOption = false;
         state.isExamStarted = false;
         state.isExamPaused = false;
@@ -1625,7 +1689,13 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
         inputs.examBook.value = '';
         inputs.examColor.value = '';
         inputs.examType.value = '';
-        inputs.examLanguage.value = '';
+     // limpar nome e input de arquivo
+     	inputs.userName.value = '';
+     	inputs.pdfUpload.value = '';
+     	// reabilitar campos que o upload de PDF havia desativado
+     	['examYear','examBook','examColor','examType','accessibilityOption','userName']
+       	.forEach(key => inputs[key].disabled = false);
+     
         inputs.accessibilityOption.checked = false;
         
 
@@ -1780,5 +1850,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-
