@@ -313,6 +313,24 @@
   </p>
 </footer>
 
+<!-- Modal para inserir gabarito manual -->
+<div id="gabarito-modal" class="modal hidden-section">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Insira o Gabarito Oficial</h3>
+      <span id="close-gabarito-modal" class="close-button">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Copie e cole abaixo o gabarito da prova, um por linha, no formato <b>número alternatica</b> (ex: <code>1 A</code>, <code>2 B</code>, ...):</p>
+      <textarea id="gabarito-manual-input" style="width:100%;min-height:200px;"></textarea>
+      <div style="text-align:right;margin-top:1rem;">
+        <button id="save-gabarito-manual" class="primary-button">Salvar Gabarito</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
     <script src="script.js"></script>
   <!-- Modal de Instruções de Uso -->
   <div id="instructions-modal" class="modal hidden-section">
