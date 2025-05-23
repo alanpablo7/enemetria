@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
         examBook: '',
         examColor: '',
         examType: '',
-	uploadedPdfUrl: null,
+	    uploadedPdfUrl: null,
+        manualAnswerKey: null,
+        manualAnswerKeyRaw: '',
         accessibilityOption: false,
         isExamStarted: false,
         isExamPaused: false,
@@ -126,14 +128,40 @@ inputs.pdfUpload.addEventListener('change', e => {
     // desativa tudo exceto dia da prova
     ['examYear','examBook','examColor','examType','accessibilityOption','userName']
       .forEach(key => inputs[key].disabled = true);
+    setTimeout(showGabaritoManualModal, 300); // <-- chama o modal do gabarito!
   } else {
     state.uploadedPdfUrl = null;
     ['examYear','examBook','examColor','examType','accessibilityOption','userName']
       .forEach(key => inputs[key].disabled = false);
   }
 });
+
 // ───── FIM do listener ─────────────────────────────────────────
 
+    function showGabaritoManualModal() {
+    const modal    = document.getElementById('gabarito-modal');
+    const close    = document.getElementById('close-gabarito-modal');
+    const saveBtn  = document.getElementById('save-gabarito-manual');
+    const textarea = document.getElementById('gabarito-manual-input');
+
+    textarea.value = state.manualAnswerKeyRaw || '';
+    modal.classList.remove('hidden-section');
+
+    close.onclick = () => modal.classList.add('hidden-section');
+    saveBtn.onclick = () => {
+        const raw = textarea.value;
+        state.manualAnswerKeyRaw = raw;
+        state.manualAnswerKey = {};
+        raw.trim().split(/\r?\n/).forEach(line => {
+        const [num, alt] = line.trim().split(/\s+/);
+        if (num && alt) state.manualAnswerKey[num] = alt.toUpperCase();
+        });
+        modal.classList.add('hidden-section');
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.classList.add('hidden-section');
+    };
+    }
 
     // Inicialização
     function init() {
@@ -375,11 +403,74 @@ inputs.pdfUpload.addEventListener('change', e => {
         controls.downloadReport.disabled = false;
     }
 
-    async function handleDownloadReport() {
-        // Gerar relatório
-        let report = generateReport();
+async function handleDownloadReport() {
+    // Gerar relatório
+    let report = generateReport();
 
-         // === INÍCIO DA MODIFICAÇÃO: anexar gabarito.txt na mesma pasta do PDF ===
+    // SE FOR PDF CARREGADO MANUALMENTE E TEM GABARITO MANUAL, USA ELE E SAI DA FUNÇÃO
+    if (state.uploadedPdfUrl && state.manualAnswerKey && Object.keys(state.manualAnswerKey).length > 0) {
+        report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
+        report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
+        const gabaritoOficial = state.manualAnswerKey;
+        Object.keys(gabaritoOficial)
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .forEach(numero => {
+                const sua = (state.answers[numero] || '—').toUpperCase();
+                const oficial = gabaritoOficial[numero];
+                const acertou = sua === oficial ? '✅' : '❌';
+                const tempo = state.questionTimes[numero]
+                    ? formatTime(state.questionTimes[numero])
+                    : '—';
+                report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+            });
+
+        // Estatísticas Finais
+        const total = Object.keys(gabaritoOficial).length;
+        const acertos = Object.keys(gabaritoOficial)
+            .filter(num => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
+            .length;
+        const erros = total - acertos;
+        const tempos = Object.entries(state.questionTimes)
+            .filter(([num]) => num in gabaritoOficial)
+            .map(([, t]) => t);
+        const tempoTotal = tempos.reduce((a, b) => a + b, 0);
+        const mediaGeral = tempoTotal / tempos.length;
+        const temposAcertos = Object.entries(state.questionTimes)
+            .filter(([num]) => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
+            .map(([, t]) => t);
+        const temposErros = Object.entries(state.questionTimes)
+            .filter(([num]) => (state.answers[num]||'—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
+            .map(([, t]) => t);
+        function fmt(segs) {
+            const h = Math.floor(segs/3600);
+            const m = Math.floor((segs%3600)/60);
+            const s = Math.floor(segs%60);
+            return `${h? h+'h':''}${m? m+'min':''}${s? s+'s':''}`;
+        }
+        report += `\n✅ Acertos: ${acertos} de ${total}\n`;
+        report += `❌ Erros: ${erros}\n`;
+        report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
+        report += `⏱️ Tempo médio nas que ACERTOU: ${fmt( temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length )}\n`;
+        report += `⌛ Tempo médio nas que ERROU: ${fmt( temposErros.reduce((a,b)=>a+b,0)/temposErros.length )}\n`;
+
+        // Criação e download do arquivo
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const username = document.getElementById('user-name')
+            .value.trim().toUpperCase() || 'USUARIO';
+        a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+        return; // Sai da função, não executa o fetch do gabarito.txt
+    }
+
+    // === Bloco try/catch do gabarito.txt permanece igual ===
     try {
       // Monta a pasta onde está o PDF (sem o #page)
       const pastaDoPdf = `${PDF_BASE}${state.examYear}/${state.examType}/${state.examDay}/`;
@@ -392,7 +483,6 @@ inputs.pdfUpload.addEventListener('change', e => {
       report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
       report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
       const gabaritoOficial = {};
-      // Cada linha do gabarito deve ter "número" e "alternativa" separados por espaço
       gabaritoText.trim().split(/\r?\n/).forEach(linha => {
         const [num, alt] = linha.trim().split(/\s+/);
         if (num && alt) gabaritoOficial[num] = alt.toUpperCase();
@@ -1307,7 +1397,7 @@ inputs.pdfUpload.addEventListener('change', e => {
     }
 
     function generateReport() {
-        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.8 ===\n\n`;
+        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.9 ===\n\n`;
         report += `Programa criando por: Pablo de Lima - todos os direitos reservado - e-mail: alanpablolima7@gmail.com\n\n\n`;
         
         // Informações da prova
