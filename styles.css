@@ -775,7 +775,7 @@ footer {
     min-width: 0;          /* remove a restrição de 400px */
   }
 
-  /* agora as alternativas ficam abaixo, ocupando 100% da largura */
+  /* side-panel ocupa toda a largura embaixo do PDF */
   .side-panel {
     flex: none;
     width: 100%;
@@ -783,37 +783,32 @@ footer {
     padding: 0 1rem;
   }
 
-  /* alternativa em linha, com espaçamento uniforme */
-  .alternatives {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-wrap: wrap;       /* se a tela ficar muito estreita */
-    gap: 0.25rem;
+  /* grid 3×2: A B C na primeira fila; D E Salvar na segunda */
+  .side-panel .alternatives {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
   }
 
-  /* reduz um pouco o tamanho dos botões radios e labels */
-  .alternative {
-    flex: 1;
-    text-align: center;
-  }
-  .alternative label {
-    display: block;
-    font-size: 1rem;
-  }
-  .alternative input {
-    margin-top: 0.25rem;
-  }
-
-  /* centraliza e reduz o botão Salvar */
-  .save-wrapper {
-    width: 100%;
+  /* formata as “caixinhas” de alternativa e o botão Salvar */
+  .side-panel .alternatives .alternative,
+  .side-panel .alternatives .save-wrapper {
     display: flex;
+    align-items: center;
     justify-content: center;
-    margin-top: 0.5rem;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
   }
-  #save-answer {
-    padding: 0.4rem 1.2rem;
-    font-size: 0.9rem;
+
+  /* faz o botão “Salvar” preencher totalmente sua célula */
+  .side-panel .alternatives .save-wrapper button {
+    width: 100%;
+    padding: 0;
+    font-size: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 }
