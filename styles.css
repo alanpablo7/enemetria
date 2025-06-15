@@ -757,13 +757,63 @@ footer {
   padding: 0.5rem;
 }
 
+/* ======= LAYOUT MOBILE PARA O MODAL DE QUESTÕES ======= */
 @media (max-width: 768px) {
-  .pdf-viewer-box {
-    min-width: 0;
-    flex: 1 1 100%;
-  }
+  /* empilha PDF e alternativas */
   .modal-body.question-flex {
+    display: flex;
     flex-direction: column;
-    height: auto;
+    height: auto;          /* deixa crescer conforme o conteúdo */
+    gap: 0.5rem;
+  }
+
+  /* faz o visor de PDF ocupar quase toda a altura disponível */
+  .pdf-viewer-box {
+    flex: none;            /* não divide espaço com o side-panel */
+    width: 100%;
+    height: 75vh;          /* ajuste esse valor se quiser mais/menos */
+    min-width: 0;          /* remove a restrição de 400px */
+  }
+
+  /* agora as alternativas ficam abaixo, ocupando 100% da largura */
+  .side-panel {
+    flex: none;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0 1rem;
+  }
+
+  /* alternativa em linha, com espaçamento uniforme */
+  .alternatives {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;       /* se a tela ficar muito estreita */
+    gap: 0.25rem;
+  }
+
+  /* reduz um pouco o tamanho dos botões radios e labels */
+  .alternative {
+    flex: 1;
+    text-align: center;
+  }
+  .alternative label {
+    display: block;
+    font-size: 1rem;
+  }
+  .alternative input {
+    margin-top: 0.25rem;
+  }
+
+  /* centraliza e reduz o botão Salvar */
+  .save-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  #save-answer {
+    padding: 0.4rem 1.2rem;
+    font-size: 0.9rem;
   }
 }
