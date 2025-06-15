@@ -756,3 +756,14 @@ footer {
   resize: vertical;
   padding: 0.5rem;
 }
+
+@media (max-width: 768px) {
+  .pdf-viewer-box {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+  .modal-body.question-flex {
+    flex-direction: column;
+    height: auto;
+  }
+}
