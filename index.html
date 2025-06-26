@@ -12,6 +12,7 @@
         <div class="logo-container">
             <h1>ENEMetria</h1>
             <p class="slogan">Simule. Meça. Evolua.</p>
+
         </div>
     </header>
 
@@ -82,11 +83,24 @@
 	</div>
 	<!-- FIM: Upload de PDF pelo usuário -->
 
-	    <button id="start-setup" class="primary-button">Iniciar Simulação</button>
-	    <!-- Coloca Instruções na mesma linha dos campos de texto -->
-	    <div class="setup-group">
-	      <button id="show-instructions" class="secondary-button small-button">Instruções de Uso</button>
-	    </div>
+<button id="start-setup" class="primary-button">Iniciar Simulação</button>
+
+<div class="setup-group" style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 100%; margin-top: 1rem;">
+  <!-- botão original de instruções -->
+  <button id="show-instructions" class="secondary-button small-button">
+    Instruções de Uso
+  </button>
+
+  <!-- novo botão vermelho -->
+  <button
+    onclick="window.open('https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-ze-max','_blank')"
+    class="primary-button"
+    style="background-color: red; border: none; padding: 0.6rem 1.2rem; font-size: 0.9rem;"
+  >
+    Acessar agente IA Zé Max
+  </button>
+</div>
+
             </div>
         </section>
 
@@ -347,7 +361,7 @@
 
       <h4>Como usar?</h4>
       <ol>
-        <li>O sistema tem alguns provas já em seu banco de dados, mas você também pode carregar uma prova de seus arquivos, ou baixar no  
+        <li>O sistema tem alguns provas já em seu banco de dados, mas você tambêm pode Baixar o PDF de uma prova no  
             <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos" 
                target="_blank">site do INEP</a>.</li>
         <li>Nas configurações, selecione dia, ano, número, cor e tipo de aplicação da prova que deseja simular e clique em <em>“Iniciar Simulação”</em>.</li>
@@ -357,11 +371,11 @@
 	<li>Não é indicado chutar questões, devendo deixá-las em branco, uma vez que pode alterar o diagnóstico da IA. Se não sabe, apenas feche a questão.</li>
 	<li>Caso decida revisar uma questão, é só abrir novamente, marcar outra alternativa e clicar em "salvar" e feche a janela.</li>
 	<li>Se decidir mudar a resposta, mas não clicar em "Salvar", o sistema não registrará a nova resposta.</li>
-        <li>Ao terminar, clique em <em>“Finalizar Prova”</em> e em seguida <em>“Baixar Relatório”. Um relatório com metadados será gerado para análise pelo agente de IA.</em>.</li>
+        <li>Ao terminar, clique em <em>“Finalizar Prova”</em> e em seguida <em>“Baixar Relatório”</em>.</li>
       </ol>
 
       <p>Um relatório com metadados será gerado para análise pelo agente de IA.</p>
-      <p><strong>OBS:</strong> Se for para outra questão, salve a resposta e feche a janela da questão atual, caso contrário os metadados que medem seu desempenho ficarão imprecisos. Na versão para celular ou Tablet é preferível usar o navegador <strong>Firefox</strong>.</p>
+      <p><strong>OBS:</strong> Se for para outra questão, salve a resposta e fecehe a janela da questão atual, caso contrário os metadados que medem seu desempenho ficarão imprecisos.</p>
     </div>
   </div>
 </div>
