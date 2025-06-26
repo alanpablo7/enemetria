@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveAnswer: document.getElementById('save-answer'),
         modalClose: document.getElementById('modal-close'),
         downloadResults: document.getElementById('download-results'),
-        saveHistory: document.getElementById('save-history'),
+        
         newSimulation: document.getElementById('new-simulation'),
         areaTabs: document.querySelectorAll('.area-tab'),
         redacaoRascunho: document.getElementById('redacao-rascunho'),
@@ -188,7 +188,7 @@ inputs.pdfUpload.addEventListener('change', e => {
         controls.saveAnswer.addEventListener('click', handleSaveAnswer);
         controls.modalClose.addEventListener('click', closeQuestionModal);
         controls.downloadResults.addEventListener('click', handleDownloadReport);
-        controls.saveHistory.addEventListener('click', handleSaveHistory);
+        
         controls.newSimulation.addEventListener('click', handleNewSimulation);
         controls.redacaoRascunho.addEventListener('click', () => handleRedacao('rascunho'));
         controls.redacaoFinal.addEventListener('click', () => handleRedacao('final'));
