@@ -1,5 +1,11 @@
-// ENEMetria - Script Principal
+//Inicio do Bloco 01________________________________________________
+
+ // --- CORREÇÃO: importar do CDN, não de "firebase/auth" ---
+
+
 document.addEventListener('DOMContentLoaded', function() {
+    
+
     // Variáveis globais
     const state = {
         examDay: '',
@@ -7,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         examBook: '',
         examColor: '',
         examType: '',
-	    uploadedPdfUrl: null,
+        uploadedPdfUrl: null,
         manualAnswerKey: null,
         manualAnswerKeyRaw: '',
         accessibilityOption: false,
@@ -32,8 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
             natureza: [],
             matematica: []
         },
-        
-	totalTime: 0,
+        totalTime: 0,
         idleTime: 0,
         pauseTime: 0,
         startTime: null,
@@ -41,19 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
         currentAreaStartTime: null,
         lastAreaActive: null,
         countdownIntervals: []
-    
     };
 
-    // ─── Caminho-base dos arquivos PDF  ──────────────
     const PDF_BASE = './pdfs/';
 
-    // Temporizadores
     let mainTimer;
     let questionTimer;
     let areaTimer;
     let countdownTimer;
 
-    // Elementos DOM
     const sections = {
         initialSetup: document.getElementById('initial-setup'),
         examControls: document.getElementById('exam-controls'),
@@ -65,11 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
         countdownTimer: document.getElementById('countdown-timer')
     };
 
-	// ---------- Controle de revisões ----------
-	const answers = {};                // { 136: 'd', ... }
-	const revisions = [];              // [{question:136, from:'D', to:'E'}, ...]
-	// -----------------------------------------
-
+    const revisions = [];
+    const answers = {};
 
     const controls = {
         startSetup: document.getElementById('start-setup'),
@@ -81,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveAnswer: document.getElementById('save-answer'),
         modalClose: document.getElementById('modal-close'),
         downloadResults: document.getElementById('download-results'),
-        
         newSimulation: document.getElementById('new-simulation'),
         areaTabs: document.querySelectorAll('.area-tab'),
         redacaoRascunho: document.getElementById('redacao-rascunho'),
@@ -116,103 +113,127 @@ document.addEventListener('DOMContentLoaded', function() {
         examColor: document.getElementById('exam-color'),
         examType: document.getElementById('exam-type'),
         accessibilityOption: document.getElementById('accessibility-option'),
-        userName:      document.getElementById('user-name'),
-	pdfUpload:     document.getElementById('pdf-upload')
+        userName: document.getElementById('user-name'),
+        pdfUpload: document.getElementById('pdf-upload')
     };
 
-// ─── INÍCIO: listener para upload de PDF ───────────────────────
-inputs.pdfUpload.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) {
-    state.uploadedPdfUrl = URL.createObjectURL(file);
-    // desativa tudo exceto dia da prova
-    ['examYear','examBook','examColor','examType','accessibilityOption','userName']
-      .forEach(key => inputs[key].disabled = true);
-    setTimeout(showGabaritoManualModal, 300); // <-- chama o modal do gabarito!
-  } else {
-    state.uploadedPdfUrl = null;
-    ['examYear','examBook','examColor','examType','accessibilityOption','userName']
-      .forEach(key => inputs[key].disabled = false);
-  }
-});
-
-// ───── FIM do listener ─────────────────────────────────────────
-
-    function showGabaritoManualModal() {
-    const modal    = document.getElementById('gabarito-modal');
-    const close    = document.getElementById('close-gabarito-modal');
-    const saveBtn  = document.getElementById('save-gabarito-manual');
-    const textarea = document.getElementById('gabarito-manual-input');
-
-    textarea.value = state.manualAnswerKeyRaw || '';
-    modal.classList.remove('hidden-section');
-
-    close.onclick = () => modal.classList.add('hidden-section');
-    saveBtn.onclick = () => {
-        const raw = textarea.value;
-        state.manualAnswerKeyRaw = raw;
-        state.manualAnswerKey = {};
-        raw.trim().split(/\r?\n/).forEach(line => {
-        const [num, alt] = line.trim().split(/\s+/);
-        if (num && alt) state.manualAnswerKey[num] = alt.toUpperCase();
+    if (inputs.pdfUpload) {
+        inputs.pdfUpload.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                state.uploadedPdfUrl = URL.createObjectURL(file);
+                ['examYear', 'examBook', 'examColor', 'examType', 'accessibilityOption', 'userName']
+                    .forEach(key => { if (inputs[key]) inputs[key].disabled = true; });
+                setTimeout(showGabaritoManualModal, 300);
+            } else {
+                state.uploadedPdfUrl = null;
+                ['examYear', 'examBook', 'examColor', 'examType', 'accessibilityOption', 'userName']
+                    .forEach(key => { if (inputs[key]) inputs[key].disabled = false; });
+            }
         });
-        modal.classList.add('hidden-section');
-    };
-    modal.onclick = function(e) {
-        if (e.target === modal) modal.classList.add('hidden-section');
-    };
     }
 
-    // Inicialização
+//Fim do Bloco 01________________________________________________
+//Inicio do Bloco 02________________________________________________
+
+
+    function showGabaritoManualModal() {
+        const modal = document.getElementById('gabarito-modal');
+        const close = document.getElementById('close-gabarito-modal');
+        const saveBtn = document.getElementById('save-gabarito-manual');
+        const textarea = document.getElementById('gabarito-manual-input');
+
+        if (!modal || !close || !saveBtn || !textarea) return;
+
+        textarea.value = state.manualAnswerKeyRaw || '';
+        modal.classList.remove('hidden-section');
+
+        close.onclick = () => modal.classList.add('hidden-section');
+        saveBtn.onclick = () => {
+            const raw = textarea.value;
+            state.manualAnswerKeyRaw = raw;
+            state.manualAnswerKey = {};
+            raw.trim().split(/\r?\n/).forEach(line => {
+                const [num, alt] = line.trim().split(/\s+/);
+                if (num && alt) state.manualAnswerKey[num] = alt.toUpperCase();
+            });
+            modal.classList.add('hidden-section');
+        };
+        modal.onclick = function(e) {
+            if (e.target === modal) modal.classList.add('hidden-section');
+        };
+    }
+
     function init() {
         setupEventListeners();
         loadHistoryFromLocalStorage();
         hideAllSections();
-        sections.initialSetup.classList.remove('hidden-section');
-        sections.initialSetup.classList.add('active-section');
-        
-        
-        // Adicionar evento para mostrar/ocultar cronômetro principal
-        controls.timerToggle.parentElement.addEventListener('click', toggleMainTimer);
+
+        // Alterado: A tela de login é a inicial, não mais a de setup
+        if (loginSection) {
+            loginSection.classList.remove('hidden-section');
+            loginSection.classList.add('active-section');
+        }
+
+        if (controls.timerToggle && controls.timerToggle.parentElement) {
+            controls.timerToggle.parentElement.addEventListener('click', toggleMainTimer);
+        }
     }
 
-    // Configuração de ouvintes de eventos
     function setupEventListeners() {
-        // Botões de configuração e controle
-        controls.startSetup.addEventListener('click', handleStartSetup);
-        controls.startExam.addEventListener('click', handleStartExam);
-        controls.pauseExam.addEventListener('click', handlePauseExam);
-        controls.finishExam.addEventListener('click', handleFinishExam);
-        controls.downloadReport.addEventListener('click', handleDownloadReport);
-        controls.toggleStats.addEventListener('click', toggleStatsPanel);
-        controls.saveAnswer.addEventListener('click', handleSaveAnswer);
-        controls.modalClose.addEventListener('click', closeQuestionModal);
-        controls.downloadResults.addEventListener('click', handleDownloadReport);
-        
-        controls.newSimulation.addEventListener('click', handleNewSimulation);
-        controls.redacaoRascunho.addEventListener('click', () => handleRedacao('rascunho'));
-        controls.redacaoFinal.addEventListener('click', () => handleRedacao('final'));
+        if (controls.startSetup) controls.startSetup.addEventListener('click', handleStartSetup);
+        if (controls.startExam) controls.startExam.addEventListener('click', handleStartExam);
+        if (controls.pauseExam) controls.pauseExam.addEventListener('click', handlePauseExam);
+        if (controls.finishExam) controls.finishExam.addEventListener('click', handleFinishExam);
+        if (controls.downloadReport) controls.downloadReport.addEventListener('click', handleDownloadReport);
+        if (controls.toggleStats) controls.toggleStats.addEventListener('click', toggleStatsPanel);
+        if (controls.saveAnswer) controls.saveAnswer.addEventListener('click', handleSaveAnswer);
+        if (controls.modalClose) controls.modalClose.addEventListener('click', closeQuestionModal);
+        if (controls.downloadResults) controls.downloadResults.addEventListener('click', handleDownloadReport);
+        if (controls.newSimulation) controls.newSimulation.addEventListener('click', handleNewSimulation);
+        if (controls.redacaoRascunho) controls.redacaoRascunho.addEventListener('click', () => handleRedacao('rascunho'));
+        if (controls.redacaoFinal) controls.redacaoFinal.addEventListener('click', () => handleRedacao('final'));
 
-        // Abas de áreas
-        controls.areaTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const area = tab.dataset.area;
-                switchArea(area);
+        if (controls.areaTabs) {
+            controls.areaTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const area = tab.dataset.area;
+                    switchArea(area);
+                });
             });
-        });
+        }
 
-        // Tecla ESC para fechar modal
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !sections.questionModal.classList.contains('hidden-section')) {
+            if (e.key === 'Escape' && sections.questionModal && !sections.questionModal.classList.contains('hidden-section')) {
                 closeQuestionModal();
             }
         });
     }
 
+    function hideAllSections() {
+        // Adicionada a seção de login para ser ocultada
+        const loginSect = document.getElementById('login-section');
+        if (loginSect) {
+            loginSect.classList.add('hidden-section');
+            loginSect.classList.remove('active-section');
+        }
+        
+        Object.values(sections).forEach(section => {
+            if (section) {
+                section.classList.add('hidden-section');
+                section.classList.remove('active-section');
+            }
+        });
+        if (sections.countdownTimer) sections.countdownTimer.classList.add('hidden-section');
+    }
 
+    // O restante do seu código `script.js` continua aqui sem alterações...
+    // (Funções como handleStartSetup, handleStartExam, formatTime, etc.)
+    // Nenhuma outra alteração é necessária no resto do arquivo para a funcionalidade de login.
     
-    // Função para mostrar/ocultar cronômetro principal
+    //... (COLE O RESTO DO SEU CÓDIGO JS ORIGINAL AQUI, COMEÇANDO DA FUNÇÃO `toggleMainTimer`)
     function toggleMainTimer() {
+        if (!displays.mainTimerValueContainer || !controls.timerToggle) return;
         if (displays.mainTimerValueContainer.classList.contains('hidden')) {
             displays.mainTimerValueContainer.classList.remove('hidden');
             controls.timerToggle.classList.add('active');
@@ -222,132 +243,91 @@ inputs.pdfUpload.addEventListener('change', e => {
         }
     }
 
-    // Manipuladores de eventos
     function handleStartSetup() {
-        // Validar entradas
- // exige sempre Dia da Prova
- if (!inputs.examDay.value) {
-   alert('Selecione o Dia da Prova.');
-   return;
- }
- 	// se não houver PDF, valida os campos normais
- 	if (!state.uploadedPdfUrl && !validateSetupInputs()) {
-	   alert('Preencha Ano, Caderno, Cor, Tipo e Nome, ou carregue um PDF.');
- 	   return;
-	 }
-	 // garante que, se o usuário escolheu arquivo e foi direto no botão
-	 if (!state.uploadedPdfUrl && inputs.pdfUpload.files[0]) {
-	   state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
-	 }
-        // Salvar configurações
+        if (!inputs.examDay || !inputs.examDay.value) {
+            alert('Selecione o Dia da Prova.');
+            return;
+        }
+        if (!state.uploadedPdfUrl && !validateSetupInputs()) {
+            alert('Preencha Ano, Caderno, Cor, Tipo e Nome, ou carregue um PDF.');
+            return;
+        }
+        if (!state.uploadedPdfUrl && inputs.pdfUpload && inputs.pdfUpload.files[0]) {
+            state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
+        }
         state.examDay = inputs.examDay.value;
         state.examYear = inputs.examYear.value;
         state.examBook = inputs.examBook.value;
         state.examColor = inputs.examColor.value;
         state.examType = inputs.examType.value;
         state.accessibilityOption = inputs.accessibilityOption.checked;
-
-    	// SALVAR NOME e PDF no state
-    	state.userName       = inputs.userName.value;
-    	// se não veio pelo listener (caso o usuário carregue e clique direto em “Iniciar”)
-    	if (!state.uploadedPdfUrl && inputs.pdfUpload.files[0]) {
-  	    state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
-    	}
-
-
-        // Gerar botões de questões
+        state.userName = inputs.userName.value;
+        if (!state.uploadedPdfUrl && inputs.pdfUpload && inputs.pdfUpload.files[0]) {
+            state.uploadedPdfUrl = URL.createObjectURL(inputs.pdfUpload.files[0]);
+        }
         generateQuestionButtons();
-
-        // Mostrar/ocultar áreas com base no dia selecionado
         setupExamDay();
+        
+// --- Início da Correção ---
+        // Em vez de esconder tudo, fazemos a transição manualmente.
+        sections.initialSetup.classList.add('hidden-section'); // Esconde a tela de configuração
+        sections.initialSetup.classList.remove('active-section');
 
-        // Mudar para a seção de questões
-        hideAllSections();
-        sections.examControls.classList.remove('hidden-section');
-        sections.questionsSection.classList.remove('hidden-section');
+        sections.examControls.classList.remove('hidden-section'); // Mostra os controles do exame
+        sections.questionsSection.classList.remove('hidden-section'); // Mostra a área de questões
         sections.examControls.classList.add('active-section');
         sections.questionsSection.classList.add('active-section');
+        // --- Fim da Correção ---
 
-        // Definir a primeira área visível como ativa na interface, mas não iniciar o cronômetro ainda
+
         const firstVisibleArea = document.querySelector('.area-questions:not(.hidden-section)');
         if (firstVisibleArea) {
             const areaId = firstVisibleArea.id.split('-')[0];
-            
-            // Apenas atualizar a interface, sem iniciar o cronômetro
             updateActiveAreaUI(areaId);
         }
     }
 
     function handleStartExam() {
         if (state.isExamStarted) return;
-
         state.isExamStarted = true;
         state.isExamPaused = false;
         state.startTime = new Date();
-
-        // Iniciar cronômetros
         startMainTimer();
-        
-        // Iniciar contagem regressiva
         startCountdownTimer();
-        
-        // Atualizar controles
         controls.startExam.disabled = true;
         controls.pauseExam.disabled = false;
         controls.finishExam.disabled = false;
-
-        // Atualizar status
         updateStatusDisplay();
     }
 
     function handlePauseExam() {
         if (!state.isExamStarted) return;
-
         if (state.isExamPaused) {
-            // Retomar prova
             state.isExamPaused = false;
             controls.pauseExam.innerHTML = '<i class="fas fa-pause"></i> Pausar Prova';
-	   // desconta o tempo em que a prova ficou pausada
-	    const resumeTime = new Date();
-	    state.pauseTime += (resumeTime - state.lastPauseStartTime) / 1000;
-            
-            // Se havia uma questão ativa, retomar seu cronômetro
+            const resumeTime = new Date();
+            state.pauseTime += (resumeTime - state.lastPauseStartTime) / 1000;
             if (state.activeQuestion) {
                 state.currentQuestionStartTime = new Date();
             }
-            
-            // Se havia uma área ativa, retomar seu cronômetro
             if (state.activeArea) {
                 state.currentAreaStartTime = new Date();
             }
-            
-            // Retomar cronômetro principal
             startMainTimer();
-            
-            // Retomar contagem regressiva
             startCountdownTimer();
         } else {
-            // Pausar prova
             state.isExamPaused = true;
             controls.pauseExam.innerHTML = '<i class="fas fa-play"></i> Retomar Prova';
-            
-            // Pausar cronômetros
             clearInterval(mainTimer);
             clearInterval(questionTimer);
             clearInterval(areaTimer);
             clearInterval(countdownTimer);
-            
-            // Registrar tempo de pausa
             const pauseStartTime = new Date();
             state.lastPauseStartTime = pauseStartTime;
-            
-            // Se havia uma questão ativa, registrar o tempo decorrido
             if (state.activeQuestion && state.currentQuestionStartTime) {
                 const questionTimeElapsed = (pauseStartTime - state.currentQuestionStartTime) / 1000;
                 state.questionTimes[state.activeQuestion] = (state.questionTimes[state.activeQuestion] || 0) + questionTimeElapsed;
             }
-            
-            // Se havia uma área ativa, registrar o tempo decorrido
             if (state.activeArea && state.currentAreaStartTime) {
                 const areaTimeElapsed = (pauseStartTime - state.currentAreaStartTime) / 1000;
                 state.areaTimes[state.activeArea] = (state.areaTimes[state.activeArea] || 0) + areaTimeElapsed;
@@ -357,203 +337,167 @@ inputs.pdfUpload.addEventListener('change', e => {
 
     function handleFinishExam() {
         if (!state.isExamStarted) return;
-        
-        // Verificar se há questão ativa
         if (state.activeQuestion) {
             alert('Por favor, encerre a questão atual antes de finalizar a prova.');
             return;
         }
-
- 	// ► consolidar tempo da área ativa antes de parar tudo
-    if (state.activeArea && state.currentAreaStartTime) {
-        const now = new Date();
-        const timeSpent = (now - state.currentAreaStartTime) / 1000;
-        state.areaTimes[state.activeArea] =
-            (state.areaTimes[state.activeArea] || 0) + timeSpent;
-
-        // evita contar duas vezes caso algo reabra
-        state.currentAreaStartTime = null;
-    }
-        
-        // Parar todos os cronômetros
+        if (state.activeArea && state.currentAreaStartTime) {
+            const now = new Date();
+            const timeSpent = (now - state.currentAreaStartTime) / 1000;
+            state.areaTimes[state.activeArea] =
+                (state.areaTimes[state.activeArea] || 0) + timeSpent;
+            state.currentAreaStartTime = null;
+        }
         clearInterval(mainTimer);
         clearInterval(questionTimer);
         clearInterval(areaTimer);
         clearInterval(countdownTimer);
-        
-        // Ocultar contagem regressiva
         sections.countdownTimer.classList.add('hidden-section');
-        
-        // Calcular tempo total
         const endTime = new Date();
         state.totalTime = (endTime - state.startTime) / 1000 - state.pauseTime;
-        
-        // Calcular métricas
         calculateMetrics();
-        
-        // Exibir resultados
         displayResults();
-        
-        // Mudar para a seção de resultados
         hideAllSections();
         sections.resultsSection.classList.remove('hidden-section');
         sections.resultsSection.classList.add('active-section');
-        
-        // Habilitar botão de download
         controls.downloadReport.disabled = false;
     }
 
-async function handleDownloadReport() {
-    // Gerar relatório
-    let report = generateReport();
+//Fim do Bloco 02________________________________________________
+//Inicio do Bloco 03________________________________________________
 
-    // SE FOR PDF CARREGADO MANUALMENTE E TEM GABARITO MANUAL, USA ELE E SAI DA FUNÇÃO
-    if (state.uploadedPdfUrl && state.manualAnswerKey && Object.keys(state.manualAnswerKey).length > 0) {
-        report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
-        report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
-        const gabaritoOficial = state.manualAnswerKey;
-        Object.keys(gabaritoOficial)
-            .sort((a, b) => parseInt(a) - parseInt(b))
-            .forEach(numero => {
-                const sua = (state.answers[numero] || '—').toUpperCase();
-                const oficial = gabaritoOficial[numero];
-                const acertou = sua === oficial ? '✅' : '❌';
-                const tempo = state.questionTimes[numero]
-                    ? formatTime(state.questionTimes[numero])
-                    : '—';
-                report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+
+    async function handleDownloadReport() {
+        let report = generateReport();
+        if (state.uploadedPdfUrl && state.manualAnswerKey && Object.keys(state.manualAnswerKey).length > 0) {
+            report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
+            report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
+            const gabaritoOficial = state.manualAnswerKey;
+            Object.keys(gabaritoOficial)
+                .sort((a, b) => parseInt(a) - parseInt(b))
+                .forEach(numero => {
+                    const sua = (state.answers[numero] || '—').toUpperCase();
+                    const oficial = gabaritoOficial[numero];
+                    const acertou = sua === oficial ? '✅' : '❌';
+                    const tempo = state.questionTimes[numero] ?
+                        formatTime(state.questionTimes[numero]) :
+                        '—';
+                    report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+                });
+            const total = Object.keys(gabaritoOficial).length;
+            const acertos = Object.keys(gabaritoOficial)
+                .filter(num => (state.answers[num] || '—').toUpperCase() === gabaritoOficial[num])
+                .length;
+            const erros = total - acertos;
+            const tempos = Object.entries(state.questionTimes)
+                .filter(([num]) => num in gabaritoOficial)
+                .map(([, t]) => t);
+            const tempoTotal = tempos.reduce((a, b) => a + b, 0);
+            const mediaGeral = tempoTotal / tempos.length;
+            const temposAcertos = Object.entries(state.questionTimes)
+                .filter(([num]) => (state.answers[num] || '—').toUpperCase() === gabaritoOficial[num])
+                .map(([, t]) => t);
+            const temposErros = Object.entries(state.questionTimes)
+                .filter(([num]) => (state.answers[num] || '—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
+                .map(([, t]) => t);
+
+            function fmt(segs) {
+                if (isNaN(segs) || segs === 0) return '0s';
+                const h = Math.floor(segs / 3600);
+                const m = Math.floor((segs % 3600) / 60);
+                const s = Math.floor(segs % 60);
+                return `${h? h+'h ':''}${m? m+'min ':''}${s? s+'s':''}`.trim();
+            }
+            report += `\n✅ Acertos: ${acertos} de ${total}\n`;
+            report += `❌ Erros: ${erros}\n`;
+            report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
+            report += `⏱️ Tempo médio nas que ACERTOU: ${fmt(temposAcertos.length > 0 ? temposAcertos.reduce((a, b) => a + b, 0) / temposAcertos.length : 0)}\n`;
+            report += `⌛ Tempo médio nas que ERROU: ${fmt(temposErros.length > 0 ? temposErros.reduce((a, b) => a + b, 0) / temposErros.length : 0)}\n`;
+            const blob = new Blob([report], {
+                type: 'text/plain'
             });
-
-        // Estatísticas Finais
-        const total = Object.keys(gabaritoOficial).length;
-        const acertos = Object.keys(gabaritoOficial)
-            .filter(num => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
-            .length;
-        const erros = total - acertos;
-        const tempos = Object.entries(state.questionTimes)
-            .filter(([num]) => num in gabaritoOficial)
-            .map(([, t]) => t);
-        const tempoTotal = tempos.reduce((a, b) => a + b, 0);
-        const mediaGeral = tempoTotal / tempos.length;
-        const temposAcertos = Object.entries(state.questionTimes)
-            .filter(([num]) => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
-            .map(([, t]) => t);
-        const temposErros = Object.entries(state.questionTimes)
-            .filter(([num]) => (state.answers[num]||'—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
-            .map(([, t]) => t);
-        function fmt(segs) {
-            const h = Math.floor(segs/3600);
-            const m = Math.floor((segs%3600)/60);
-            const s = Math.floor(segs%60);
-            return `${h? h+'h':''}${m? m+'min':''}${s? s+'s':''}`;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const username = (document.getElementById('user-name') ? document.getElementById('user-name').value.trim().toUpperCase() : 'USUARIO') || 'USUARIO';
+            a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            return;
         }
-        report += `\n✅ Acertos: ${acertos} de ${total}\n`;
-        report += `❌ Erros: ${erros}\n`;
-        report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
-        report += `⏱️ Tempo médio nas que ACERTOU: ${fmt( temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length )}\n`;
-        report += `⌛ Tempo médio nas que ERROU: ${fmt( temposErros.reduce((a,b)=>a+b,0)/temposErros.length )}\n`;
+        try {
+            const pastaDoPdf = `${PDF_BASE}${state.examYear}/${state.examType}/${state.examDay}/`;
+            const caminhoGabarito = `${pastaDoPdf}gabarito.txt`;
+            const res = await fetch(caminhoGabarito);
+            if (res.ok) {
+                const gabaritoText = await res.text();
+                report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
+                report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
+                const gabaritoOficial = {};
+                gabaritoText.trim().split(/\r?\n/).forEach(linha => {
+                    const [num, alt] = linha.trim().split(/\s+/);
+                    if (num && alt) gabaritoOficial[num] = alt.toUpperCase();
+                });
+                Object.keys(gabaritoOficial)
+                    .sort((a, b) => parseInt(a) - parseInt(b))
+                    .forEach(numero => {
+                        const sua = (state.answers[numero] || '—').toUpperCase();
+                        const oficial = gabaritoOficial[numero];
+                        const acertou = sua === oficial ? '✅' : '❌';
+                        const tempo = state.questionTimes[numero] ?
+                            formatTime(state.questionTimes[numero]) :
+                            '—';
+                        report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+                    });
+                const total = Object.keys(gabaritoOficial).length;
+                const acertos = Object.keys(gabaritoOficial)
+                    .filter(num => (state.answers[num] || '—').toUpperCase() === gabaritoOficial[num])
+                    .length;
+                const erros = total - acertos;
+                const tempos = Object.entries(state.questionTimes)
+                    .filter(([num]) => num in gabaritoOficial)
+                    .map(([, t]) => t);
+                const tempoTotal = tempos.reduce((a, b) => a + b, 0);
+                const mediaGeral = tempoTotal / tempos.length;
+                const temposAcertos = Object.entries(state.questionTimes)
+                    .filter(([num]) => (state.answers[num] || '—').toUpperCase() === gabaritoOficial[num])
+                    .map(([, t]) => t);
+                const temposErros = Object.entries(state.questionTimes)
+                    .filter(([num]) => (state.answers[num] || '—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
+                    .map(([, t]) => t);
 
-        // Criação e download do arquivo
-        const blob = new Blob([report], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const username = document.getElementById('user-name')
-            .value.trim().toUpperCase() || 'USUARIO';
-        a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
-        a.href = url;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-        return; // Sai da função, não executa o fetch do gabarito.txt
-    }
-
-    // === Bloco try/catch do gabarito.txt permanece igual ===
-    try {
-      // Monta a pasta onde está o PDF (sem o #page)
-      const pastaDoPdf = `${PDF_BASE}${state.examYear}/${state.examType}/${state.examDay}/`;
-      const caminhoGabarito = `${pastaDoPdf}gabarito.txt`;
- 
-      const res = await fetch(caminhoGabarito);
-      if (res.ok) {
-        const gabaritoText = await res.text();
-      // === Gabarito Oficial vs. Suas Respostas ===
-      report += '\n=== Gabarito Oficial vs. Suas Respostas ===\n';
-      report += `${'Nº Questão'.padEnd(10)}${'Sua Resposta'.padEnd(14)}${'Gabarito Oficial'.padEnd(18)}${'Acertou?'.padEnd(10)}${'Tempo Gasto'.padEnd(12)}\n`;
-      const gabaritoOficial = {};
-      gabaritoText.trim().split(/\r?\n/).forEach(linha => {
-        const [num, alt] = linha.trim().split(/\s+/);
-        if (num && alt) gabaritoOficial[num] = alt.toUpperCase();
-      });
-      Object.keys(gabaritoOficial)
-        .sort((a, b) => parseInt(a) - parseInt(b))
-        .forEach(numero => {
-          const sua = (state.answers[numero] || '—').toUpperCase();
-          const oficial = gabaritoOficial[numero];
-          const acertou = sua === oficial ? '✅' : '❌';
-          const tempo = state.questionTimes[numero]
-            ? formatTime(state.questionTimes[numero])
-            : '—';
-          report += `${numero.toString().padEnd(10)}${sua.padEnd(14)}${oficial.padEnd(18)}${acertou.padEnd(10)}${tempo.padEnd(12)}\n`;
+                function fmt(segs) {
+                    if (isNaN(segs) || segs === 0) return '0s';
+                    const h = Math.floor(segs / 3600);
+                    const m = Math.floor((segs % 3600) / 60);
+                    const s = Math.floor(segs % 60);
+                    return `${h? h+'h ':''}${m? m+'min ':''}${s? s+'s':''}`.trim();
+                }
+                report += `\n✅ Acertos: ${acertos} de ${total}\n`;
+                report += `❌ Erros: ${erros}\n`;
+                report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
+                report += `⏱️ Tempo médio nas que ACERTOU: ${fmt(temposAcertos.length > 0 ? temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length : 0)}\n`;
+                report += `⌛ Tempo médio nas que ERROU: ${fmt(temposErros.length > 0 ? temposErros.reduce((a,b)=>a+b,0)/temposErros.length : 0)}\n`;
+            } else {
+                console.warn('gabarito.txt não encontrado em', caminhoGabarito, res.status);
+            }
+        } catch (err) {
+            console.error('Erro ao carregar gabarito.txt:', err);
+        }
+        const blob = new Blob([report], {
+            type: 'text/plain'
         });
-
-       // ─── Estatísticas Finais ──────────────────────────────────────
-       const total = Object.keys(gabaritoOficial).length;
-       const acertos = Object.keys(gabaritoOficial)
-         .filter(num => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
-         .length;
-       const erros = total - acertos;
-       const tempos = Object.entries(state.questionTimes)
-         .filter(([num]) => num in gabaritoOficial)
-         .map(([, t]) => t);
-       const tempoTotal = tempos.reduce((a, b) => a + b, 0);
-       const mediaGeral = tempoTotal / tempos.length;
-       const temposAcertos = Object.entries(state.questionTimes)
-         .filter(([num]) => (state.answers[num]||'—').toUpperCase() === gabaritoOficial[num])
-         .map(([, t]) => t);
-       const temposErros = Object.entries(state.questionTimes)
-         .filter(([num]) => (state.answers[num]||'—').toUpperCase() !== gabaritoOficial[num] && num in gabaritoOficial)
-         .map(([, t]) => t);
-       function fmt(segs) {
-         const h = Math.floor(segs/3600);
-         const m = Math.floor((segs%3600)/60);
-         const s = Math.floor(segs%60);
-         return `${h? h+'h':''}${m? m+'min':''}${s? s+'s':''}`;
-       }
-       report += `\n✅ Acertos: ${acertos} de ${total}\n`;
-       report += `❌ Erros: ${erros}\n`;
-       report += `⏳ Tempo Total Gasto nas ${total}: ${fmt(tempoTotal)} (tempo médio: ${fmt(mediaGeral)})\n`;
-       report += `⏱️ Tempo médio nas que ACERTOU: ${fmt( temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length )}\n`;
-       report += `⌛ Tempo médio nas que ERROU: ${fmt( temposErros.reduce((a,b)=>a+b,0)/temposErros.length )}\n`;
-       // ────────────────────────────────────────────────────────────────
-
-
-      } else {
-        console.warn('gabarito.txt não encontrado em', caminhoGabarito, res.status);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar gabarito.txt:', err);
-    }
-    // === FIM DA MODIFICAÇÃO ===
-   
-        // Criar blob e link para download
-        const blob = new Blob([report], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
-        
         const a = document.createElement('a');
         a.href = url;
-   // → Captura o nome do usuário e remove espaços
-   const username = document.getElementById('user-name')
-       .value.trim().toUpperCase() || 'USUARIO';
-   // → Define o nome do arquivo incluindo o nome do usuário
-   a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
-
+        const username = (document.getElementById('user-name') ? document.getElementById('user-name').value.trim().toUpperCase() : 'USUARIO') || 'USUARIO';
+        a.download = `ENEMetria_${username}_Relatorio_${formatDate(new Date())}.txt`;
         document.body.appendChild(a);
         a.click();
-        
-        // Limpar
         setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
@@ -561,7 +505,6 @@ async function handleDownloadReport() {
     }
 
     function handleSaveHistory() {
-        // Gerar dados para histórico
         const historyItem = {
             id: Date.now(),
             date: new Date().toISOString(),
@@ -570,7 +513,6 @@ async function handleDownloadReport() {
             examBook: state.examBook,
             examColor: state.examColor,
             examType: state.examType,
-
             accessibilityOption: state.accessibilityOption,
             totalTime: state.totalTime,
             areaTimes: state.areaTimes,
@@ -578,35 +520,22 @@ async function handleDownloadReport() {
             answers: state.answers,
             skippedQuestions: state.skippedQuestions
         };
-        
-        // Salvar no localStorage
         const history = JSON.parse(localStorage.getItem('enemetria_history') || '[]');
         history.push(historyItem);
         localStorage.setItem('enemetria_history', JSON.stringify(history));
-        
-        // Atualizar exibição do histórico
         loadHistoryFromLocalStorage();
-        
-        // Mostrar seção de histórico
         hideAllSections();
         sections.historySection.classList.remove('hidden-section');
         sections.historySection.classList.add('active-section');
-        
         alert('Simulação salva no histórico com sucesso!');
     }
 
     function handleNewSimulation() {
-        // Resetar estado
         resetState();
-   
- // ─── Limpa revisões ───
-    revisions.length = 0;
-    document.getElementById('revision-count').textContent = '0';
-    for (const q in answers) delete answers[q];
-    // ───────────────────────
-
-        
-        // Voltar para a tela inicial
+        revisions.length = 0;
+        const revisionCountEl = document.getElementById('revision-count');
+        if (revisionCountEl) revisionCountEl.textContent = '0';
+        for (const q in answers) delete answers[q];
         hideAllSections();
         sections.initialSetup.classList.remove('hidden-section');
         sections.initialSetup.classList.add('active-section');
@@ -617,19 +546,14 @@ async function handleDownloadReport() {
             alert('Por favor, inicie a prova primeiro.');
             return;
         }
-        
         if (state.isExamPaused) {
             alert('A prova está pausada. Retome a prova para continuar.');
             return;
         }
-        
-        // Se já houver uma questão ativa, encerrar primeiro
         if (state.activeQuestion && state.activeQuestion !== questionNumber) {
             alert('Por favor, desmarque a questão atual antes de passar para próxima.');
             return;
         }
-        
-        // Determinar a área da questão
         let area;
         const questionNum = parseInt(questionNumber);
         if (questionNum >= 1 && questionNum <= 45) {
@@ -641,20 +565,12 @@ async function handleDownloadReport() {
         } else if (questionNum >= 136 && questionNum <= 180) {
             area = 'matematica';
         }
-        
-        // Se a área for diferente da área ativa atual, mudar para a nova área
         if (area && area !== state.activeArea) {
             switchArea(area);
         }
-        
-        // Atualizar estado
         state.activeQuestion = questionNumber;
         state.currentQuestionStartTime = new Date();
-        
-        // Iniciar cronômetro da questão
         startQuestionTimer();
-        
-        // Atualizar interface
         if (!questionNumber.startsWith('redacao')) {
             const questionButton = document.querySelector(`.question-button[data-question="${questionNumber}"]`);
             if (questionButton) {
@@ -662,36 +578,30 @@ async function handleDownloadReport() {
                 openQuestionModal(questionNumber);
             }
         }
-        
-        // Atualizar status
         updateStatusDisplay();
     }
 
+//Fim do Bloco 03________________________________________________
+//Inicio do Bloco 04________________________________________________
+
     function endQuestion() {
         if (!state.activeQuestion) return;
-        
-        // Registrar tempo gasto na questão
         const now = new Date();
         const timeSpent = (now - state.currentQuestionStartTime) / 1000;
         state.questionTimes[state.activeQuestion] = (state.questionTimes[state.activeQuestion] || 0) + timeSpent;
-        
-                // ► Registrar ordem (inclui duplicatas se o aluno reabrir a questão depois)
         if (state.activeArea) {
-            state.resolutionOrder[state.activeArea].push({q: state.activeQuestion, time: Date.now()});
+            state.resolutionOrder[state.activeArea].push({
+                q: state.activeQuestion,
+                time: Date.now()
+            });
         }
-        // Verificar se a questão foi respondida
         if (!state.activeQuestion.startsWith('redacao') && !state.answers[state.activeQuestion]) {
-            // Marcar como pulada
             state.skippedQuestions[state.activeQuestion] = true;
-            
-            // Atualizar interface
             const questionButton = document.querySelector(`.question-button[data-question="${state.activeQuestion}"]`);
             if (questionButton) {
                 questionButton.classList.add('skipped');
             }
         }
-        
-        // Atualizar interface
         if (!state.activeQuestion.startsWith('redacao')) {
             const questionButton = document.querySelector(`.question-button[data-question="${state.activeQuestion}"]`);
             if (questionButton) {
@@ -700,64 +610,35 @@ async function handleDownloadReport() {
         } else {
             controls.redacaoRascunho.classList.remove('active');
             controls.redacaoFinal.classList.remove('active');
-            // Resetar cor dos botões de redação
             controls.redacaoRascunho.style.backgroundColor = '';
             controls.redacaoFinal.style.backgroundColor = '';
         }
-        
-        // Limpar estado
         state.lastQuestionResolved = state.activeQuestion;
         state.activeQuestion = null;
         state.currentQuestionStartTime = null;
-        
-        // Parar cronômetro da questão
         clearInterval(questionTimer);
         displays.questionTimerValue.textContent = formatTime(timeSpent);
-        
-        // Atualizar status
         updateStatusDisplay();
-        
-        // Atualizar estatísticas
         updateStatsDisplay();
     }
 
-
-  function buildPdfPath(questionNumber) {
-      // Ex.: pdfs/2024/regular/primeiro/amarelo.pdf#page=91
-      return `${PDF_BASE}${state.examYear}/` +
-             `${state.examType}/` +
-             `${state.examDay}/` +
-             `${state.examColor}.pdf#page=${questionNumber}`;
-  }
-
+    function buildPdfPath(questionNumber) {
+        return `${PDF_BASE}${state.examYear}/${state.examType}/${state.examDay}/${state.examColor}.pdf#page=${questionNumber}`;
+    }
 
     function openQuestionModal(questionNumber) {
-        // Configurar modal
         displays.modalQuestionNumber.textContent = `Questão ${questionNumber.padStart(2, '0')}`;
-	
-    if (!questionNumber.startsWith('redacao')) {
-         const viewer = document.getElementById('pdf-viewer');
-         if (viewer) {
-             // usa o PDF do usuário, se houver; senão, o padrão
-        if (state.uploadedPdfUrl) {
-            // abre o PDF carregado já na página da questão
-            viewer.src = `${state.uploadedPdfUrl}#page=${questionNumber}`;
-          } else {
-            viewer.src = buildPdfPath(questionNumber);
-          }
-       }
-     } else {
-         const viewer = document.getElementById('pdf-viewer');
-         if (viewer) viewer.src = '';
-     }
-
-        
-        // Limpar seleção anterior
+        const viewer = document.getElementById('pdf-viewer');
+        if (viewer) {
+            if (state.uploadedPdfUrl) {
+                viewer.src = `${state.uploadedPdfUrl}#page=${questionNumber}`;
+            } else {
+                viewer.src = buildPdfPath(questionNumber);
+            }
+        }
         document.querySelectorAll('input[name="question-alternative"]').forEach(radio => {
             radio.checked = false;
         });
-        
-        // Selecionar resposta salva, se existir
         if (state.answers[questionNumber]) {
             const savedAnswer = state.answers[questionNumber];
             const radioToCheck = document.getElementById(`alt-${savedAnswer}`);
@@ -765,59 +646,38 @@ async function handleDownloadReport() {
                 radioToCheck.checked = true;
             }
         }
-        
-        // Exibir modal
         sections.questionModal.classList.remove('hidden-section');
     }
 
     function closeQuestionModal() {
         sections.questionModal.classList.add('hidden-section');
-        
-        // Se a questão não foi respondida, marcar como pulada
         if (state.activeQuestion && !state.answers[state.activeQuestion]) {
             state.skippedQuestions[state.activeQuestion] = true;
-            
-            // Atualizar interface
             const questionButton = document.querySelector(`.question-button[data-question="${state.activeQuestion}"]`);
             if (questionButton) {
                 questionButton.classList.add('skipped');
             }
         }
-        
-        // Encerrar questão
         endQuestion();
     }
 
-    // Funções de área
     function switchArea(area) {
-        // Se a área já estiver ativa, não fazer nada
         if (area === state.activeArea) return;
-        
-        // Registrar tempo da área anterior se a prova estiver iniciada
         if (state.isExamStarted && state.activeArea && state.currentAreaStartTime) {
             const now = new Date();
             const timeSpent = (now - state.currentAreaStartTime) / 1000;
             state.areaTimes[state.activeArea] = (state.areaTimes[state.activeArea] || 0) + timeSpent;
         }
-        
-        // Atualizar estado
         state.lastAreaActive = state.activeArea;
         state.activeArea = area;
-        
-        // Iniciar cronômetro da área apenas se a prova estiver iniciada
         if (state.isExamStarted) {
             state.currentAreaStartTime = new Date();
             startAreaTimer();
         }
-        
-        // Atualizar interface
         updateActiveAreaUI(area);
-        
-        // Atualizar status
         updateStatusDisplay();
     }
-    
-    // Função para atualizar apenas a interface da área ativa, sem iniciar cronômetros
+
     function updateActiveAreaUI(area) {
         controls.areaTabs.forEach(tab => {
             tab.classList.remove('active');
@@ -825,11 +685,9 @@ async function handleDownloadReport() {
                 tab.classList.add('active');
             }
         });
-        
         document.querySelectorAll('.area-questions').forEach(areaSection => {
             areaSection.classList.remove('active');
         });
-        
         const activeAreaSection = document.getElementById(`${area}-questions`);
         if (activeAreaSection) {
             activeAreaSection.classList.add('active');
@@ -839,60 +697,40 @@ async function handleDownloadReport() {
     function setupExamDay() {
         const isPrimeirodia = state.examDay === 'primeiro';
         const isSegundoDia = state.examDay === 'segundo';
-        
-        // Configurar tempo total com base no dia e na opção de acessibilidade
         let totalHours;
         if (isPrimeirodia) {
             totalHours = state.accessibilityOption ? 6.5 : 5.5;
         } else {
             totalHours = state.accessibilityOption ? 6 : 5;
         }
-        
         const hours = Math.floor(totalHours);
         const minutes = Math.round((totalHours - hours) * 60);
-        
         displays.mainTimerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-        
-        // Configurar intervalos de contagem regressiva
         state.countdownIntervals = [];
         let timeInMinutes = hours * 60 + minutes;
-        
-        
-        // Adicionar intervalos de 30 minutos
         while (timeInMinutes > 0) {
             state.countdownIntervals.push(timeInMinutes);
             timeInMinutes -= 30;
         }
-        
-        // Mostrar/ocultar áreas
         document.querySelectorAll('.area-tab').forEach(tab => {
             const area = tab.dataset.area;
-            if (isPrimeirodia && (area === 'linguagens' || area === 'humanas' || area === 'redacao')) {
-                tab.style.display = 'block';
-            } else if (isSegundoDia && (area === 'natureza' || area === 'matematica')) {
+            if ((isPrimeirodia && ['linguagens', 'humanas', 'redacao'].includes(area)) || (isSegundoDia && ['natureza', 'matematica'].includes(area))) {
                 tab.style.display = 'block';
             } else {
                 tab.style.display = 'none';
             }
         });
-        
         document.querySelectorAll('.area-questions').forEach(areaSection => {
             const area = areaSection.id.split('-')[0];
-            if (isPrimeirodia && (area === 'linguagens' || area === 'humanas' || area === 'redacao')) {
-                areaSection.classList.remove('hidden-section');
-            } else if (isSegundoDia && (area === 'natureza' || area === 'matematica')) {
+            if ((isPrimeirodia && ['linguagens', 'humanas', 'redacao'].includes(area)) || (isSegundoDia && ['natureza', 'matematica'].includes(area))) {
                 areaSection.classList.remove('hidden-section');
             } else {
                 areaSection.classList.add('hidden-section');
             }
         });
-        
-        // Mostrar/ocultar cronômetros de área
         document.querySelectorAll('.area-timer').forEach(timer => {
             const area = timer.id.split('-')[0];
-            if (isPrimeirodia && (area === 'linguagens' || area === 'humanas' || area === 'redacao')) {
-                timer.style.display = 'flex';
-            } else if (isSegundoDia && (area === 'natureza' || area === 'matematica')) {
+            if ((isPrimeirodia && ['linguagens', 'humanas', 'redacao'].includes(area)) || (isSegundoDia && ['natureza', 'matematica'].includes(area))) {
                 timer.style.display = 'flex';
             } else {
                 timer.style.display = 'none';
@@ -900,152 +738,109 @@ async function handleDownloadReport() {
         });
     }
 
-    // Funções de cronômetro
     function startMainTimer() {
         clearInterval(mainTimer);
-        
         const updateTimer = () => {
             if (state.isExamPaused) return;
-            
             const now = new Date();
             const elapsedSeconds = Math.floor((now - state.startTime) / 1000) - state.pauseTime;
-            const timeString = formatTime(elapsedSeconds);
-            displays.mainTimerDisplay.textContent = timeString;
+            displays.mainTimerDisplay.textContent = formatTime(elapsedSeconds);
         };
-        
         mainTimer = setInterval(updateTimer, 1000);
         updateTimer();
     }
 
+//Fim do Bloco 04________________________________________________
+//Inicio do Bloco 05________________________________________________
+
     function startQuestionTimer() {
         clearInterval(questionTimer);
-        
         const updateTimer = () => {
             if (state.isExamPaused || !state.activeQuestion || !state.currentQuestionStartTime) return;
-            
             const now = new Date();
             const elapsedSeconds = Math.floor((now - state.currentQuestionStartTime) / 1000);
             const previousTime = state.questionTimes[state.activeQuestion] || 0;
             const totalTime = previousTime + elapsedSeconds;
-            const timeString = formatTime(totalTime);
-            displays.questionTimerValue.textContent = timeString;
+            displays.questionTimerValue.textContent = formatTime(totalTime);
         };
-        
         questionTimer = setInterval(updateTimer, 1000);
         updateTimer();
     }
 
     function startAreaTimer() {
         clearInterval(areaTimer);
-        
         const updateTimer = () => {
             if (state.isExamPaused || !state.activeArea || !state.currentAreaStartTime) return;
-            
             const now = new Date();
             const elapsedSeconds = Math.floor((now - state.currentAreaStartTime) / 1000);
             const previousTime = state.areaTimes[state.activeArea] || 0;
             const totalTime = previousTime + elapsedSeconds;
-            
-            // Atualizar o cronômetro da área ativa
             const areaTimerDisplay = document.querySelector(`#${state.activeArea}-timer .timer-value`);
             if (areaTimerDisplay) {
                 areaTimerDisplay.textContent = formatTime(totalTime);
             }
         };
-        
         areaTimer = setInterval(updateTimer, 1000);
         updateTimer();
     }
 
     function startCountdownTimer() {
         clearInterval(countdownTimer);
-        
-        // Mostrar contagem regressiva
         sections.countdownTimer.classList.remove('hidden-section');
-        
-        // Criar elementos para todos os intervalos de tempo
         createCountdownIntervals();
-        
         const updateCountdown = () => {
             if (state.isExamPaused) return;
-            
             const now = new Date();
             const elapsedSeconds = Math.floor((now - state.startTime) / 1000) - state.pauseTime;
             const remainingSeconds = getTotalExamTimeInSeconds() - elapsedSeconds;
-            
             if (remainingSeconds <= 0) {
-                // Tempo acabou
                 clearInterval(countdownTimer);
                 sections.countdownTimer.classList.add('hidden-section');
-                displays.mainTimerContainer.classList.add('hidden');
+                if (displays.mainTimerContainer) displays.mainTimerContainer.classList.add('hidden');
                 alert('O tempo da prova acabou!');
                 return;
             }
-            
             const remainingMinutes = Math.ceil(remainingSeconds / 60);
-            
-            // Verificar alertas especiais
             if (remainingMinutes === 30 && remainingSeconds % 60 === 0) {
                 alert('Atenção! Falta apenas 30 min para o término da prova.');
             } else if (remainingMinutes === 15 && remainingSeconds % 60 === 0) {
                 alert('Atenção! Falta apenas 15 min para o término da prova. É importante que você comece a preencher seu gabarito');
-                displays.mainTimerContainer.classList.add('hidden');
+                if (displays.mainTimerContainer) displays.mainTimerContainer.classList.add('hidden');
             }
-            
-            // Atualizar exibição da contagem regressiva
             updateCountdownIntervals(remainingMinutes);
         };
-        
         countdownTimer = setInterval(updateCountdown, 1000);
         updateCountdown();
     }
-    
-    // Função para criar elementos para todos os intervalos de tempo
+
     function createCountdownIntervals() {
-        // Limpar contêiner
         displays.countdownIntervalsContainer.innerHTML = '';
-        
-        // Criar elementos para cada intervalo
         state.countdownIntervals.forEach((minutes, index) => {
             const hours = Math.floor(minutes / 60);
             const mins = minutes % 60;
             const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
-            
             const intervalElement = document.createElement('div');
             intervalElement.className = 'countdown-interval';
             intervalElement.dataset.minutes = minutes;
             intervalElement.textContent = timeString;
-            
-            // O primeiro intervalo é o ativo
             if (index === 0) {
                 intervalElement.classList.add('active');
             }
-            
             displays.countdownIntervalsContainer.appendChild(intervalElement);
         });
     }
-    
-    // Função para atualizar a exibição dos intervalos de contagem regressiva
+
     function updateCountdownIntervals(remainingMinutes) {
         const intervalElements = document.querySelectorAll('.countdown-interval');
-        
         intervalElements.forEach(element => {
             const minutes = parseInt(element.dataset.minutes);
-            
-            // Marcar como completado se o tempo já passou
             if (minutes > remainingMinutes) {
                 element.classList.add('completed');
                 element.classList.remove('active');
-            }
-            // Marcar como ativo se for o próximo intervalo
-            else if (minutes <= remainingMinutes && 
-                    (!element.previousElementSibling || 
-                     element.previousElementSibling.classList.contains('completed'))) {
+            } else if (minutes <= remainingMinutes && (!element.previousElementSibling || element.previousElementSibling.classList.contains('completed'))) {
                 element.classList.add('active');
                 element.classList.remove('completed');
-            }
-            // Caso contrário, remover ambas as classes
-            else {
+            } else {
                 element.classList.remove('active');
                 element.classList.remove('completed');
             }
@@ -1055,19 +850,15 @@ async function handleDownloadReport() {
     function getTotalExamTimeInSeconds() {
         const isPrimeirodia = state.examDay === 'primeiro';
         let totalHours;
-        
         if (isPrimeirodia) {
             totalHours = state.accessibilityOption ? 6.5 : 5.5;
         } else {
             totalHours = state.accessibilityOption ? 6 : 5;
         }
-        
         return totalHours * 3600;
     }
 
-    // Funções de atualização de interface
     function updateStatusDisplay() {
-        // Atualizar questão atual
         if (state.activeQuestion) {
             if (state.activeQuestion.startsWith('redacao')) {
                 const type = state.activeQuestion.split('-')[1];
@@ -1078,8 +869,6 @@ async function handleDownloadReport() {
         } else {
             displays.currentQuestionNumber.textContent = state.lastQuestionResolved || 'Nenhuma';
         }
-        
-        // Atualizar área atual
         if (state.activeArea) {
             const areaNames = {
                 linguagens: 'Linguagens',
@@ -1099,46 +888,22 @@ async function handleDownloadReport() {
             displays.statsContent.innerHTML = '<p>As estatísticas aparecerão aqui durante a prova.</p>';
             return;
         }
-        
-        // Calcular estatísticas
         const totalQuestions = getTotalQuestions();
         const answeredQuestions = Object.keys(state.answers).length;
         const skippedQuestions = Object.keys(state.skippedQuestions).length;
         const remainingQuestions = totalQuestions - answeredQuestions;
-        
-        // Calcular tempo médio por questão
         let totalQuestionTime = 0;
         let questionCount = 0;
-        
         for (const question in state.questionTimes) {
             if (state.questionTimes.hasOwnProperty(question)) {
                 totalQuestionTime += state.questionTimes[question];
                 questionCount++;
             }
         }
-        
         const averageTimePerQuestion = questionCount > 0 ? totalQuestionTime / questionCount : 0;
-        
-        // Gerar HTML
-        let statsHTML = `
-            <div class="stats-item">
-                <h4>Progresso</h4>
-                <p>Questões respondidas: ${answeredQuestions} de ${totalQuestions} (${Math.round(answeredQuestions / totalQuestions * 100)}%)</p>
-                <p>Questões puladas: ${skippedQuestions}</p>
-                <p>Questões restantes: ${remainingQuestions}</p>
-            </div>
-            <div class="stats-item">
-                <h4>Tempo</h4>
-                <p>Tempo médio por questão: ${formatTime(averageTimePerQuestion)}</p>
-            </div>
-            <div class="stats-item">
-                <h4>Tempo por Área</h4>
-        `;
-        
-        // Adicionar tempo por área
+        let statsHTML = `<div class="stats-item"><h4>Progresso</h4><p>Questões respondidas: ${answeredQuestions} de ${totalQuestions} (${Math.round(answeredQuestions / totalQuestions * 100)}%)</p><p>Questões puladas: ${skippedQuestions}</p><p>Questões restantes: ${remainingQuestions}</p></div><div class="stats-item"><h4>Tempo</h4><p>Tempo médio por questão: ${formatTime(averageTimePerQuestion)}</p></div><div class="stats-item"><h4>Tempo por Área</h4>`;
         for (const area in state.areaTimes) {
             if (state.areaTimes.hasOwnProperty(area)) {
-                // Verificar se a área está ativa no dia selecionado
                 const areaElement = document.getElementById(`${area}-timer`);
                 if (areaElement && areaElement.style.display !== 'none') {
                     const areaNames = {
@@ -1148,25 +913,17 @@ async function handleDownloadReport() {
                         natureza: 'Natureza',
                         matematica: 'Matemática'
                     };
-                    
-                    // Calcular tempo atual da área
                     let areaTime = state.areaTimes[area];
-                    
-                    // Se for a área ativa, adicionar o tempo decorrido desde o início
                     if (area === state.activeArea && state.currentAreaStartTime && !state.isExamPaused) {
                         const now = new Date();
                         const elapsedSeconds = Math.floor((now - state.currentAreaStartTime) / 1000);
                         areaTime += elapsedSeconds;
                     }
-                    
                     statsHTML += `<p>${areaNames[area]}: ${formatTime(areaTime)}</p>`;
                 }
             }
         }
-        
         statsHTML += '</div>';
-        
-        // Atualizar conteúdo
         displays.statsContent.innerHTML = statsHTML;
     }
 
@@ -1181,43 +938,29 @@ async function handleDownloadReport() {
         }
     }
 
-    // Funções de redação
     function handleRedacao(type) {
         if (!state.isExamStarted) {
             alert('Por favor, inicie a prova primeiro.');
             return;
         }
-        
         if (state.isExamPaused) {
             alert('A prova está pausada. Retome a prova para continuar.');
             return;
         }
-        
-        // Se já houver uma questão ativa, encerrar primeiro
         if (state.activeQuestion && state.activeQuestion !== `redacao-${type}`) {
             alert('Por favor, desmarque a questão atual antes de passar para próxima.');
             return;
         }
-        
-        // Se a área ativa não for redação, mudar para redação
         if (state.activeArea !== 'redacao') {
             switchArea('redacao');
         }
-        
-        // Se a mesma opção de redação já estiver ativa, desativar
         if (state.activeQuestion === `redacao-${type}`) {
             endQuestion();
             return;
         }
-        
-        // Atualizar estado
         state.activeQuestion = `redacao-${type}`;
         state.currentQuestionStartTime = new Date();
-        
-        // Iniciar cronômetro da questão
         startQuestionTimer();
-        
-        // Atualizar interface
         if (type === 'rascunho') {
             controls.redacaoRascunho.classList.add('active');
             controls.redacaoRascunho.style.backgroundColor = 'red';
@@ -1229,122 +972,92 @@ async function handleDownloadReport() {
             controls.redacaoRascunho.classList.remove('active');
             controls.redacaoRascunho.style.backgroundColor = '';
         }
-        
-        // Atualizar status
         updateStatusDisplay();
-    }
 
-    // Funções de resposta
+    }
+//Fim do Bloco 05________________________________________________
+//Inicio do Bloco 06________________________________________________
+
     function handleSaveAnswer() {
         if (!state.activeQuestion || state.activeQuestion.startsWith('redacao')) {
             return;
         }
-        
-        // Obter alternativa selecionada
         const selectedAlternative = document.querySelector('input[name="question-alternative"]:checked');
         if (!selectedAlternative) {
             alert('Por favor, selecione uma alternativa.');
             return;
         }
-        
-        // Salvar resposta
         state.answers[state.activeQuestion] = selectedAlternative.value;
-
-    // ─── Registra revisão ───
-    const previous = answers[state.activeQuestion];
-    const newValue = selectedAlternative.value;
-    if (previous && previous !== newValue) {
-        revisions.push({
-            question: Number(state.activeQuestion),
-            from: previous.toUpperCase(),
-            to:   newValue.toUpperCase()
-        });
-        document.getElementById('revision-count').textContent = revisions.length;
-    }
-    answers[state.activeQuestion] = newValue;
-    // ────────────────────────
-
-        
-        // Atualizar interface
+        const previous = answers[state.activeQuestion];
+        const newValue = selectedAlternative.value;
+        if (previous && previous !== newValue) {
+            revisions.push({
+                question: Number(state.activeQuestion),
+                from: previous.toUpperCase(),
+                to: newValue.toUpperCase()
+            });
+            const revisionCountEl = document.getElementById('revision-count');
+            if (revisionCountEl) revisionCountEl.textContent = revisions.length;
+        }
+        answers[state.activeQuestion] = newValue;
         const questionButton = document.querySelector(`.question-button[data-question="${state.activeQuestion}"]`);
         if (questionButton) {
             questionButton.classList.remove('skipped');
             questionButton.classList.add('answered');
         }
-        
-        // Fechar modal
         closeQuestionModal();
-        
-        // Atualizar estatísticas
         updateStatsDisplay();
     }
 
-    // Funções de geração de questões
     function generateQuestionButtons() {
         const linguagensGrid = document.querySelector('#linguagens-questions .questions-grid');
         const humanasGrid = document.querySelector('#humanas-questions .questions-grid');
         const naturezaGrid = document.querySelector('#natureza-questions .questions-grid');
         const matematicaGrid = document.querySelector('#matematica-questions .questions-grid');
-        
-        // Limpar grids
-        linguagensGrid.innerHTML = '';
-        humanasGrid.innerHTML = '';
-        naturezaGrid.innerHTML = '';
-        matematicaGrid.innerHTML = '';
-        
-        // Gerar botões de questões
+        if (linguagensGrid) linguagensGrid.innerHTML = '';
+        if (humanasGrid) humanasGrid.innerHTML = '';
+        if (naturezaGrid) naturezaGrid.innerHTML = '';
+        if (matematicaGrid) matematicaGrid.innerHTML = '';
         for (let i = 1; i <= 180; i++) {
             const button = document.createElement('button');
             button.className = 'question-button';
             button.textContent = i.toString().padStart(2, '0');
             button.dataset.question = i;
             button.addEventListener('click', () => handleQuestionClick(i.toString()));
-            
-            // Adicionar ao grid correspondente
-            if (i <= 45) {
+            if (i <= 45 && linguagensGrid) {
                 linguagensGrid.appendChild(button);
-            } else if (i <= 90) {
+            } else if (i <= 90 && humanasGrid) {
                 humanasGrid.appendChild(button);
-            } else if (i <= 135) {
+            } else if (i <= 135 && naturezaGrid) {
                 naturezaGrid.appendChild(button);
-            } else {
+            } else if (matematicaGrid) {
                 matematicaGrid.appendChild(button);
             }
         }
     }
 
-    // Funções de resultados
     function calculateMetrics() {
-        // Calcular tempo por área
         const areaTimesFormatted = {};
         for (const area in state.areaTimes) {
             if (state.areaTimes.hasOwnProperty(area)) {
                 areaTimesFormatted[area] = formatTime(state.areaTimes[area]);
             }
         }
-        
-        // Calcular tempo médio por questão
         let totalQuestionTime = 0;
         let questionCount = 0;
-        
         for (const question in state.questionTimes) {
             if (state.questionTimes.hasOwnProperty(question)) {
                 totalQuestionTime += state.questionTimes[question];
                 questionCount++;
             }
         }
-        
         const averageTimePerQuestion = questionCount > 0 ? totalQuestionTime / questionCount : 0;
-        
-        // Calcular questões puladas que foram respondidas corretamente
         let skippedCorrectCount = 0;
         for (const question in state.skippedQuestions) {
             if (state.skippedQuestions.hasOwnProperty(question) && state.answers[question]) {
                 skippedCorrectCount++;
             }
         }
-        
-        // Salvar métricas no estado
         state.metrics = {
             totalTime: formatTime(state.totalTime),
             areaTimesFormatted,
@@ -1356,28 +1069,10 @@ async function handleDownloadReport() {
     }
 
     function displayResults() {
-        // Exibir resumo
-        displays.summaryContent.innerHTML = `
-            <p><strong>Dia da Prova:</strong> ${state.examDay === 'primeiro' ? 'Primeiro Dia' : 'Segundo Dia'}</p>
-            <p><strong>Ano:</strong> ${state.examYear}</p>
-            <p><strong>Caderno:</strong> ${state.examBook} (${state.examColor})</p>
-            <p><strong>Tipo de Aplicação:</strong> ${state.examType}</p>
-            <p><strong>Tempo Total:</strong> ${state.metrics.totalTime}</p>
-        `;
-        
-        // Exibir métricas
-        let metricsHTML = `
-            <p><strong>Questões Respondidas:</strong> ${state.metrics.answeredQuestions} de ${getTotalQuestions()}</p>
-            <p><strong>Questões Puladas:</strong> ${state.metrics.skippedQuestions}</p>
-            <p><strong>Questões Puladas, mas respondidas:</strong> ${state.metrics.skippedCorrectCount}</p>
-            <p><strong>Tempo Médio por Questão:</strong> ${state.metrics.averageTimePerQuestion}</p>
-            <h4>Tempo por Área:</h4>
-        `;
-        
-        // Adicionar tempo por área
+        displays.summaryContent.innerHTML = `<p><strong>Dia da Prova:</strong> ${state.examDay === 'primeiro' ? 'Primeiro Dia' : 'Segundo Dia'}</p><p><strong>Ano:</strong> ${state.examYear}</p><p><strong>Caderno:</strong> ${state.examBook} (${state.examColor})</p><p><strong>Tipo de Aplicação:</strong> ${state.examType}</p><p><strong>Tempo Total:</strong> ${state.metrics.totalTime}</p>`;
+        let metricsHTML = `<p><strong>Questões Respondidas:</strong> ${state.metrics.answeredQuestions} de ${getTotalQuestions()}</p><p><strong>Questões Puladas:</strong> ${state.metrics.skippedQuestions}</p><p><strong>Questões Puladas, mas respondidas:</strong> ${state.metrics.skippedCorrectCount}</p><p><strong>Tempo Médio por Questão:</strong> ${state.metrics.averageTimePerQuestion}</p><h4>Tempo por Área:</h4>`;
         for (const area in state.metrics.areaTimesFormatted) {
             if (state.metrics.areaTimesFormatted.hasOwnProperty(area)) {
-                // Verificar se a área está ativa no dia selecionado
                 const areaElement = document.getElementById(`${area}-timer`);
                 if (areaElement && areaElement.style.display !== 'none') {
                     const areaNames = {
@@ -1387,41 +1082,32 @@ async function handleDownloadReport() {
                         natureza: 'Natureza',
                         matematica: 'Matemática'
                     };
-                    
                     metricsHTML += `<p>${areaNames[area]}: ${state.metrics.areaTimesFormatted[area]}</p>`;
                 }
             }
         }
-        
         displays.metricsContent.innerHTML = metricsHTML;
     }
 
     function generateReport() {
-        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO 3.9 ===\n\n`;
+        let report = `=== RELATÓRIO ENEMETRIA, VERSÃO LS 4.2 ===\n\n`;
         report += `Programa criando por: Pablo de Lima - todos os direitos reservado - e-mail: alanpablolima7@gmail.com\n\n\n`;
-        
-        // Informações da prova
         report += `=== INFORMAÇÕES DA PROVA ===\n`;
         report += `Dia da Prova: ${state.examDay === 'primeiro' ? 'Primeiro Dia' : 'Segundo Dia'}\n`;
         report += `Ano: ${state.examYear}\n`;
         report += `Caderno: ${state.examBook} (${state.examColor})\n`;
         report += `Tipo de Aplicação: ${state.examType}\n`;
         report += `Data da Simulação: ${formatDate(new Date())}\n\n`;
-        
-        // Métricas
         report += `=== MÉTRICAS DE DESEMPENHO ===\n`;
         report += `Tempo Total: ${state.metrics.totalTime}\n`;
         report += `Questões Respondidas: ${state.metrics.answeredQuestions} de ${getTotalQuestions()}\n`;
         report += `Questões Puladas: ${state.metrics.skippedQuestions}\n`;
         report += `Questões Puladas, mas respondidas: ${state.metrics.skippedCorrectCount}\n`;
-	report += `Questões Revisadas: ${revisions.length}\n\n`;
+        report += `Questões Revisadas: ${revisions.length}\n\n`;
         report += `Tempo Médio por Questão: ${state.metrics.averageTimePerQuestion}\n\n`;
-        
-        // Tempo por área
         report += `=== TEMPO POR ÁREA ===\n`;
         for (const area in state.metrics.areaTimesFormatted) {
             if (state.metrics.areaTimesFormatted.hasOwnProperty(area)) {
-                // Verificar se a área está ativa no dia selecionado
                 const areaElement = document.getElementById(`${area}-timer`);
                 if (areaElement && areaElement.style.display !== 'none') {
                     const areaNames = {
@@ -1431,25 +1117,17 @@ async function handleDownloadReport() {
                         natureza: 'Natureza',
                         matematica: 'Matemática'
                     };
-                    
                     report += `${areaNames[area]}: ${state.metrics.areaTimesFormatted[area]}\n`;
                 }
             }
         }
         report += '\n';
-        
-        // Respostas
         report += `=== RESPOSTAS ===\n`;
         const sortedAnswers = Object.keys(state.answers).sort((a, b) => {
-            // Ordenar numericamente, mas manter "redacao" no final
-            if (a.startsWith('redacao') && !b.startsWith('redacao')) return 1;
-            if (!a.startsWith('redacao') && b.startsWith('redacao')) return -1;
-            if (a.startsWith('redacao') && b.startsWith('redacao')) {
-                return a.localeCompare(b);
-            }
+            if (a.startsWith('redacao')) return 1;
+            if (b.startsWith('redacao')) return -1;
             return parseInt(a) - parseInt(b);
         });
-        
         for (const question of sortedAnswers) {
             if (question.startsWith('redacao')) {
                 const type = question.split('-')[1];
@@ -1459,19 +1137,12 @@ async function handleDownloadReport() {
             }
         }
         report += '\n';
-                
-        // Tempo por questão
         report += `=== TEMPO POR QUESTÃO ===\n`;
         const sortedQuestionTimes = Object.keys(state.questionTimes).sort((a, b) => {
-            // Ordenar numericamente, mas manter "redacao" no final
-            if (a.startsWith('redacao') && !b.startsWith('redacao')) return 1;
-            if (!a.startsWith('redacao') && b.startsWith('redacao')) return -1;
-            if (a.startsWith('redacao') && b.startsWith('redacao')) {
-                return a.localeCompare(b);
-            }
+            if (a.startsWith('redacao')) return 1;
+            if (b.startsWith('redacao')) return -1;
             return parseInt(a) - parseInt(b);
         });
-        
         for (const question of sortedQuestionTimes) {
             if (question.startsWith('redacao')) {
                 const type = question.split('-')[1];
@@ -1480,67 +1151,39 @@ async function handleDownloadReport() {
                 report += `Questão ${question}: ${formatTime(state.questionTimes[question])}\n`;
             }
         }
-
-	// === QUESTÕES PULADAS ===
-	report += `\n=== QUESTÕES PULADAS ===\n`;
-	const puladas = Object.keys(state.skippedQuestions).sort((a, b) => parseInt(a) - parseInt(b));
-
-	if (puladas.length === 0) {
-    	  report += `Nenhuma questão foi pulada.\n`;
-	  } else {
-    	for (const q of puladas) {
-        	const tempo = state.questionTimes[q] ? formatTime(state.questionTimes[q]) : '—';
-        	const resposta = state.answers[q] ? state.answers[q].toUpperCase() : '—';
-        	report += `Questão ${q}: Tempo = ${tempo}, Resposta = ${resposta}\n`;
-    		}
-	}
-
- // ─── Bloco de revisões ───
-  report += `\n=== QUESTÕES REVISADAS ===\n`;
-  if (revisions.length === 0) {
-       report += `Nenhuma questão revisada.\n`;
-   } else {
-       report += revisions
-           .map(r => `Questão ${r.question}: ${r.from} -> ${r.to}`)
-           .join('\n') + '\n';
-   }
-   report += '\n';
- // ───────────────────────────
-
-        
-        
-
-        // === MÉTRICAS GERAIS ===
-        report += `
-=== MÉTRICAS GERAIS ===
-`;
-
-        // Tempo Total da Prova
+        report += `\n=== QUESTÕES PULADAS ===\n`;
+        const puladas = Object.keys(state.skippedQuestions).sort((a, b) => parseInt(a) - parseInt(b));
+        if (puladas.length === 0) {
+            report += `Nenhuma questão foi pulada.\n`;
+        } else {
+            for (const q of puladas) {
+                const tempo = state.questionTimes[q] ? formatTime(state.questionTimes[q]) : '—';
+                const resposta = state.answers[q] ? state.answers[q].toUpperCase() : '—';
+                report += `Questão ${q}: Tempo = ${tempo}, Resposta = ${resposta}\n`;
+            }
+        }
+        report += `\n=== QUESTÕES REVISADAS ===\n`;
+        if (revisions.length === 0) {
+            report += `Nenhuma questão revisada.\n`;
+        } else {
+            report += revisions.map(r => `Questão ${r.question}: ${r.from} -> ${r.to}`).join('\n') + '\n';
+        }
+        report += '\n';
+        report += `\n=== MÉTRICAS GERAIS ===\n`;
         const tempoTotalProva = state.totalTime;
-        report += `Tempo Total da Prova: ${formatTime(tempoTotalProva)}
-`;
-
-        // Tempo Total em Questões
+        report += `Tempo Total da Prova: ${formatTime(tempoTotalProva)}\n`;
         const tempoTotalQuestoes = Object.values(state.questionTimes).reduce((a, b) => a + b, 0);
-        report += `Tempo Total em Questões: ${formatTime(tempoTotalQuestoes)}
-`;
-
-        // Tempo Ocioso
+        report += `Tempo Total em Questões: ${formatTime(tempoTotalQuestoes)}\n`;
         const tempoOcioso = state.idleTime;
-        report += `Tempo Ocioso: ${formatTime(tempoOcioso)}
-`;
-
-        // Tempo em Pausa
+        report += `Tempo Ocioso: ${formatTime(tempoOcioso)}\n`;
         const tempoPausa = state.pauseTime;
-        report += `Tempo em Pausa: ${formatTime(tempoPausa)}
-`;
-
-        // Questão Mais Demorada e Mais Rápida
-        let questaoMaisDemorada = null, tempoMaisDemorado = 0;
-        let questaoMaisRapida = null, tempoMaisRapido = Infinity;
+        report += `Tempo em Pausa: ${formatTime(tempoPausa)}\n`;
+        let questaoMaisDemorada = null,
+            tempoMaisDemorado = 0;
+        let questaoMaisRapida = null,
+            tempoMaisRapido = Infinity;
         const temposPorQuestao = state.questionTimes;
         const freq = {};
-
         for (const [questao, tempo] of Object.entries(temposPorQuestao)) {
             if (tempo > tempoMaisDemorado) {
                 tempoMaisDemorado = tempo;
@@ -1553,23 +1196,11 @@ async function handleDownloadReport() {
             const t = Math.round(tempo);
             freq[t] = (freq[t] || 0) + 1;
         }
-
         const tempoMaisFrequente = Object.entries(freq).reduce((a, b) => a[1] >= b[1] ? a : b, [0, 0])[0];
-
-        report += `Questão Mais Demorada: ${questaoMaisDemorada} (${formatTime(tempoMaisDemorado)})
-`;
-        report += `Questão Mais Rápida: ${questaoMaisRapida} (${formatTime(tempoMaisRapido)})
-`;
-        report += `Tempo Mais Frequente: ${formatTime(tempoMaisFrequente)}
-`;
-
-        
-
-        // === TOP 10 QUESTÕES POR ÁREA ===
-        report += `
-=== TOP 10 QUESTÕES POR ÁREA ===
-`;
-
+        report += `Questão Mais Demorada: ${questaoMaisDemorada} (${formatTime(tempoMaisDemorado)})\n`;
+        report += `Questão Mais Rápida: ${questaoMaisRapida} (${formatTime(tempoMaisRapido)})\n`;
+        report += `Tempo Mais Frequente: ${formatTime(tempoMaisFrequente)}\n`;
+        report += `\n=== TOP 10 QUESTÕES POR ÁREA ===\n`;
         const areaPorQuestao = (questao) => {
             const numero = parseInt(questao.replace(/[^0-9]/g, ''));
             if (questao.startsWith("redacao")) return "redacao";
@@ -1579,111 +1210,71 @@ async function handleDownloadReport() {
             if (numero >= 136 && numero <= 180) return "Matemática";
             return "Desconhecida";
         };
-
         const temposPorArea = {};
-
         for (const [questao, tempo] of Object.entries(state.questionTimes)) {
             const area = areaPorQuestao(questao);
             if (area === "redacao") continue;
             if (!temposPorArea[area]) temposPorArea[area] = [];
-            temposPorArea[area].push({ questao, tempo });
+            temposPorArea[area].push({
+                questao,
+                tempo
+            });
         }
-
         for (const area in temposPorArea) {
             const lista = temposPorArea[area];
             const maisRapidas = [...lista].sort((a, b) => a.tempo - b.tempo).slice(0, 10);
             const maisDemoradas = [...lista].sort((a, b) => b.tempo - a.tempo).slice(0, 10);
-
-            report += `
-Área: ${area}
-`;
-            report += `10 Questões Mais Rápidas:
-`;
+            report += `\nÁrea: ${area}\n`;
+            report += `10 Questões Mais Rápidas:\n`;
             maisRapidas.forEach((q, i) => {
-                report += `  ${i + 1}. ${q.questao} - ${formatTime(q.tempo)}
-`;
+                report += `  ${i + 1}. ${q.questao} - ${formatTime(q.tempo)}\n`;
             });
-
-            report += `10 Questões Mais Demoradas:
-`;
+            report += `10 Questões Mais Demoradas:\n`;
             maisDemoradas.forEach((q, i) => {
-                report += `  ${i + 1}. ${q.questao} - ${formatTime(q.tempo)}
-`;
+                report += `  ${i + 1}. ${q.questao} - ${formatTime(q.tempo)}\n`;
             });
         }
-
-        
-        
-// === ORDEM DE RESOLUÇÃO ===
-report += `
-=== ORDEM DE RESOLUÇÃO ===
-`;
-const areaLabels = {
-    linguagens: 'Linguagens',
-    humanas:    'Humanas',
-    redacao:    'Redação',
-    natureza:   'Natureza',
-    matematica: 'Matemática'
-};
-
-for (const [area, lista] of Object.entries(state.resolutionOrder)) {
-    const lastMap = {};
-    for (const entry of lista) {
-        lastMap[entry.q] = entry;               // sobrescreve se já existir
+        report += `\n=== ORDEM DE RESOLUÇÃO ===\n`;
+        const areaLabels = {
+            linguagens: 'Linguagens',
+            humanas: 'Humanas',
+            redacao: 'Redação',
+            natureza: 'Natureza',
+            matematica: 'Matemática'
+        };
+        for (const [area, lista] of Object.entries(state.resolutionOrder)) {
+            const lastMap = {};
+            for (const entry of lista) {
+                lastMap[entry.q] = entry;
+            }
+            const ordered = Object.values(lastMap)
+                .sort((a, b) => a.time - b.time);
+            const respondidas = ordered.filter(e => state.answers[e.q]);
+            const puladas = ordered.filter(e => !state.answers[e.q]);
+            const ordemFinal = [...respondidas, ...puladas]
+                .map(e => e.q)
+                .join('; ') || '—';
+            report += `Ordem (${areaLabels[area]}): ${ordemFinal}\n`;
+        }
+        return report;
     }
-    // 2. transforma em array e ordena cronologicamente
-    const ordered = Object.values(lastMap)
-                           .sort((a, b) => a.time - b.time);
+//Fim do Bloco 06________________________________________________
+//Inicio do Bloco 07________________________________________________
 
-    // 3. separa respondidas e não‑respondidas
-    const respondidas = ordered.filter(e => state.answers[e.q]);
-    const puladas     = ordered.filter(e => !state.answers[e.q]);
-
-    // 4. monta a lista final
-    const ordemFinal = [...respondidas, ...puladas]     // respondidas → puladas
-                       .map(e => e.q)                   // só o número
-                       .join('; ') || '—';
-
-    report += `Ordem (${areaLabels[area]}): ${ordemFinal}\n`;
-}
-
-
-    return report;
-
-    }
-
-    // Funções de histórico
     function loadHistoryFromLocalStorage() {
         const history = JSON.parse(localStorage.getItem('enemetria_history') || '[]');
-        
         if (history.length === 0) {
             displays.historyList.innerHTML = '<p>Nenhuma simulação encontrada no histórico.</p>';
             return;
         }
-        
         let historyHTML = '';
-        
-        // Ordenar por data (mais recente primeiro)
         history.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
         for (const item of history) {
             const date = new Date(item.date);
             const formattedDate = formatDate(date);
-            
-            historyHTML += `
-                <div class="history-item">
-                    <h4>${item.examDay === 'primeiro' ? 'Primeiro Dia' : 'Segundo Dia'} - ${item.examYear}</h4>
-                    <p>Data: ${formattedDate}</p>
-                    <p>Tempo Total: ${formatTime(item.totalTime)}</p>
-                    <p>Questões Respondidas: ${Object.keys(item.answers).length}</p>
-                    <button class="view-history-button" data-id="${item.id}">Ver Detalhes</button>
-                </div>
-            `;
+            historyHTML += `<div class="history-item"><h4>${item.examDay === 'primeiro' ? 'Primeiro Dia' : 'Segundo Dia'} - ${item.examYear}</h4><p>Data: ${formattedDate}</p><p>Tempo Total: ${formatTime(item.totalTime)}</p><p>Questões Respondidas: ${Object.keys(item.answers).length}</p><button class="view-history-button" data-id="${item.id}">Ver Detalhes</button></div>`;
         }
-        
         displays.historyList.innerHTML = historyHTML;
-        
-        // Adicionar eventos aos botões
         document.querySelectorAll('.view-history-button').forEach(button => {
             button.addEventListener('click', () => {
                 const id = parseInt(button.dataset.id);
@@ -1696,17 +1287,14 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
     }
 
     function displayHistoryItem(item) {
-        // Implementar exibição detalhada do histórico
         alert('Funcionalidade de visualização detalhada do histórico em desenvolvimento.');
     }
 
-    // Funções utilitárias
     function formatTime(seconds) {
         seconds = Math.floor(seconds);
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
-        
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
@@ -1716,62 +1304,25 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
         const year = date.getFullYear();
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
-        
         return `${day}/${month}/${year} ${hours}:${minutes}`;
     }
 
     function validateSetupInputs() {
-	if (state.uploadedPdfUrl)   return true;
-        if (!inputs.examDay.value) return false;
-        if (!inputs.examYear.value) return false;
-        if (!inputs.examBook.value) return false;
-        if (!inputs.examColor.value) return false;
-        if (!inputs.examType.value) return false;
-	if (!inputs.userName.value)  return false;
-        
-        return true;
+        if (state.uploadedPdfUrl) return true;
+        return inputs.examDay.value && inputs.examYear.value && inputs.examBook.value && inputs.examColor.value && inputs.examType.value && inputs.userName.value;
     }
-
 
     function getTotalQuestions() {
-        if (state.examDay === 'primeiro') {
-            return 90; // Linguagens (45) + Humanas (45)
-        } else {
-            return 90; // Natureza (45) + Matemática (45)
-        }
-    }
-
-    function hideAllSections() {
-        sections.initialSetup.classList.add('hidden-section');
-        sections.initialSetup.classList.remove('active-section');
-        
-        sections.examControls.classList.add('hidden-section');
-        sections.examControls.classList.remove('active-section');
-        
-        sections.statsPanel.classList.add('hidden-section');
-        
-        sections.questionsSection.classList.add('hidden-section');
-        sections.questionsSection.classList.remove('active-section');
-        
-        sections.questionModal.classList.add('hidden-section');
-        
-        sections.resultsSection.classList.add('hidden-section');
-        sections.resultsSection.classList.remove('active-section');
-        
-        sections.historySection.classList.add('hidden-section');
-        sections.historySection.classList.remove('active-section');
-        
-        sections.countdownTimer.classList.add('hidden-section');
+        return 90;
     }
 
     function resetState() {
         state.uploadedPdfUrl = null;
-	state.examDay = '';
+        state.examDay = '';
         state.examYear = '';
         state.examBook = '';
         state.examColor = '';
         state.examType = '';
-    
         state.accessibilityOption = false;
         state.isExamStarted = false;
         state.isExamPaused = false;
@@ -1795,14 +1346,10 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
         state.currentAreaStartTime = null;
         state.lastAreaActive = null;
         state.countdownIntervals = [];
-        
-        // Limpar cronômetros
         clearInterval(mainTimer);
         clearInterval(questionTimer);
         clearInterval(areaTimer);
         clearInterval(countdownTimer);
-        
-        // Resetar displays
         displays.mainTimerDisplay.textContent = '00:00:00';
         displays.linguagensTimer.textContent = '00:00:00';
         displays.humanasTimer.textContent = '00:00:00';
@@ -1810,46 +1357,31 @@ for (const [area, lista] of Object.entries(state.resolutionOrder)) {
         displays.naturezaTimer.textContent = '00:00:00';
         displays.matematicaTimer.textContent = '00:00:00';
         displays.questionTimerValue.textContent = '00:00:00';
-        
-        // Resetar controles
         controls.startExam.disabled = false;
         controls.pauseExam.disabled = true;
         controls.finishExam.disabled = true;
         controls.downloadReport.disabled = true;
         controls.pauseExam.innerHTML = '<i class="fas fa-pause"></i> Pausar Prova';
-        
-        // Resetar formulário
         inputs.examDay.value = '';
         inputs.examYear.value = '';
         inputs.examBook.value = '';
         inputs.examColor.value = '';
         inputs.examType.value = '';
-     // limpar nome e input de arquivo
-     	inputs.userName.value = '';
-     	inputs.pdfUpload.value = '';
-     	// reabilitar campos que o upload de PDF havia desativado
-     	['examYear','examBook','examColor','examType','accessibilityOption','userName']
-       	.forEach(key => inputs[key].disabled = false);
-     
+        inputs.userName.value = '';
+        inputs.pdfUpload.value = '';
+        ['examYear', 'examBook', 'examColor', 'examType', 'accessibilityOption', 'userName']
+        .forEach(key => inputs[key].disabled = false);
         inputs.accessibilityOption.checked = false;
-        
-
     }
 
-    // Inicializar
     init();
 });
-
-
 
 let redacaoTimerInterval = null;
 
 function startRedacaoTimer() {
     if (redacaoTimerInterval) return;
-    redacaoTimerInterval = setInterval(() => {
-        // aqui você atualizaria o tempo de redação
-        console.log("Contando tempo da redação...");
-    }, 1000);
+    redacaoTimerInterval = setInterval(() => {}, 1000);
 }
 
 function stopRedacaoTimer() {
@@ -1857,12 +1389,9 @@ function stopRedacaoTimer() {
     redacaoTimerInterval = null;
 }
 
-
-
 document.querySelectorAll(".redacao-button").forEach(button => {
     button.addEventListener("click", () => {
         const isActive = button.classList.contains("active");
-
         if (isActive) {
             button.classList.remove("active");
             stopRedacaoTimer();
@@ -1874,114 +1403,77 @@ document.querySelectorAll(".redacao-button").forEach(button => {
     });
 });
 
-
-const redacaoButtons = document.querySelectorAll(".redacao-button");
-
-redacaoButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        const isActive = button.classList.contains("active");
-
-        if (isActive) {
-            button.classList.remove("active");
-            stopRedacaoTimer();
-        } else {
-            redacaoButtons.forEach(btn => btn.classList.remove("active"));
-            button.classList.add("active");
-            startRedacaoTimer();
-        }
-    });
-});
-
-// --- Modal de Instruções de Uso ---
 document.addEventListener('DOMContentLoaded', () => {
-  const showInstrBtn = document.getElementById('show-instructions');
-  const instrModal   = document.getElementById('instructions-modal');
-  const closeInstr   = document.getElementById('close-instructions');
-
-  // Abre o modal
-  showInstrBtn.addEventListener('click', () => {
-    instrModal.classList.remove('hidden-section');
-  });
-
-  // Fecha ao clicar no "×"
-  closeInstr.addEventListener('click', () => {
-    instrModal.classList.add('hidden-section');
-  });
-
-  // Fecha ao clicar fora do conteúdo
-  instrModal.addEventListener('click', e => {
-    if (e.target === instrModal) {
-      instrModal.classList.add('hidden-section');
+    const showInstrBtn = document.getElementById('show-instructions');
+    const instrModal = document.getElementById('instructions-modal');
+    const closeInstr = document.getElementById('close-instructions');
+    if (showInstrBtn && instrModal && closeInstr) {
+        showInstrBtn.addEventListener('click', () => {
+            instrModal.classList.remove('hidden-section');
+        });
+        closeInstr.addEventListener('click', () => {
+            instrModal.classList.add('hidden-section');
+        });
+        instrModal.addEventListener('click', e => {
+            if (e.target === instrModal) {
+                instrModal.classList.add('hidden-section');
+            }
+        });
     }
-  });
-});
 
+    const iaModal = document.getElementById('ia-agent-modal');
+    const closeIaModal = document.getElementById('close-ia-modal');
+    const downloadBtn1 = document.getElementById('download-report');
+    const downloadBtn2 = document.getElementById('download-results');
 
-
-// --- Modal do Agente IA ---
-document.addEventListener('DOMContentLoaded', () => {
-  const iaModal      = document.getElementById('ia-agent-modal');
-  const closeIaModal = document.getElementById('close-ia-modal');
-
-  const downloadBtn1 = document.getElementById('download-report');
-  const downloadBtn2 = document.getElementById('download-results'); // opcional
-
-  function openIaModal() {
-    iaModal.classList.remove('hidden-section');
-  }
-
-  if (downloadBtn1) {
-    downloadBtn1.addEventListener('click', () => {
-      setTimeout(openIaModal, 300); // pequeno atraso para garantir o download antes de abrir
-    });
-  }
-
-  if (downloadBtn2) {
-    downloadBtn2.addEventListener('click', () => {
-      setTimeout(openIaModal, 300);
-    });
-  }
-
-  closeIaModal.addEventListener('click', () => {
-    iaModal.classList.add('hidden-section');
-  });
-
-  iaModal.addEventListener('click', (e) => {
-    if (e.target === iaModal) {
-      iaModal.classList.add('hidden-section');
+    function openIaModal() {
+        if (iaModal) iaModal.classList.remove('hidden-section');
     }
-  });
-});
+    if (downloadBtn1) {
+        downloadBtn1.addEventListener('click', () => {
+            setTimeout(openIaModal, 300);
+        });
+    }
+    if (downloadBtn2) {
+        downloadBtn2.addEventListener('click', () => {
+            setTimeout(openIaModal, 300);
+        });
+    }
+    if (closeIaModal) {
+        closeIaModal.addEventListener('click', () => {
+            iaModal.classList.add('hidden-section');
+        });
+    }
+    if (iaModal) {
+        iaModal.addEventListener('click', (e) => {
+            if (e.target === iaModal) {
+                iaModal.classList.add('hidden-section');
+            }
+        });
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const newSimBtn = document.getElementById('new-simulation');
+    const newSimBtn = document.getElementById('new-simulation');
+    if (newSimBtn) {
+        newSimBtn.addEventListener('click', () => {
+            const confirmar = confirm("Tem certeza que deseja iniciar uma nova simulação? Isso apagará todos os dados desta simulação.");
+            if (confirmar) {
+                location.reload();
+            }
+        });
+    }
 
-  if (newSimBtn) {
-    newSimBtn.addEventListener('click', () => {
-      const confirmar = confirm("Tem certeza que deseja iniciar uma nova simulação? Isso apagará todos os dados desta simulação.");
-      if (confirmar) {
-        location.reload(); // Recarrega a página
-      }
+//Fim do Bloco 07________________________________________________
+//Inicio do Bloco 08________________________________________________
 
-
-    });
-  }
-});
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  // — Instruções de Uso (já existente) …
-  // — Modal do Agente IA (já existente) …
-  // — Nova Simulação (já existente) …
-
-  // — Confirmação ao Finalizar Prova ——
-  const finishBtn = document.getElementById('finish-exam');
-  if (finishBtn) {
-    finishBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm("Tem certeza que deseja finalizar a prova? Após isso, não será possível alterar nada.")) {
-        document.getElementById('download-report').disabled = false;
-      }
-    });
-  }
+    const finishBtn = document.getElementById('finish-exam');
+    if (finishBtn) {
+        finishBtn.addEventListener('click', (e) => {
+            const downloadReportBtn = document.getElementById('download-report');
+            if (confirm("Tem certeza que deseja finalizar a prova? Após isso, não será possível alterar nada.")) {
+                if(downloadReportBtn) downloadReportBtn.disabled = false;
+            } else {
+                 e.preventDefault();
+            }
+        });
+    }
 });
