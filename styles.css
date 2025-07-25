@@ -817,3 +817,31 @@ footer {
     cursor: pointer;
   }
 }
+
+/* ======== ESTILOS PARA A SEÇÃO DE LOGIN ======== */
+#login-section {
+    max-width: 450px; /* Define uma largura máxima para o container */
+    margin: 5rem auto; /* Centraliza o container na página com margem no topo */
+    padding: 2.5rem;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Espaço entre os campos e o botão */
+}
+
+#login-button {
+    width: 100%; /* Faz o botão ocupar toda a largura do container */
+    margin-top: 1rem; /* Espaço extra acima do botão */
+}
+
+/* Garante que o campo de senha tenha o mesmo estilo dos outros */
+select, input[type="number"], input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: var(--transition);
+}
