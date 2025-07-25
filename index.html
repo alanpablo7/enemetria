@@ -6,18 +6,119 @@
     <title>ENEMetria - Simule. Meça. Evolua.</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+
+    <style>
+        /* Estilos para feedback de erro */
+        .error-message {
+            color: #D8000C;
+            background-color: #FFD2D2;
+            border: 1px solid #D8000C;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            text-align: center;
+            display: none; /* Começa oculto */
+        }
+        /* Estilos para o container de autenticação */
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .auth-toggle a {
+            color: #3498db;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        #user-info {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        #logout-button {
+            background-color: #e74c3c;
+        }
+        /* Estilos para o novo modal genérico */
+        .modal-footer {
+            text-align: right; 
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            margin-top: 1rem;
+        }
+    </style>
+
+
+
 </head>
 <body>
     <header>
         <div class="logo-container">
             <h1>ENEMetria</h1>
             <p class="slogan">Simule. Meça. Evolua.</p>
-
         </div>
     </header>
 
-    <main>
-        <section id="initial-setup" class="active-section">
+ <main>
+        <!-- Seção de Autenticação: Contém os formulários de Login e Cadastro -->
+        <section id="auth-section">
+            <div class="auth-container">
+                <!-- Formulário de Login (inicialmente visível) -->
+                <div id="login-form">
+                    <h2>Acesso Restrito</h2>
+                    <div class="setup-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" placeholder="Digite seu email" required>
+                    </div>
+                    <div class="setup-group">
+                        <label for="login-pass">Senha:</label>
+                        <input type="password" id="login-pass" placeholder="Digite sua senha" required>
+                    </div>
+                    <button id="login-button" class="primary-button">Entrar</button>
+                    <div class="auth-toggle">
+                        <p>Não tem uma conta? <a id="show-signup">Cadastre-se</a></p>
+                    </div>
+                </div>
+
+                <!-- Formulário de Cadastro (inicialmente oculto) -->
+                <div id="signup-form" class="hidden-section">
+                    <h2>Crie sua Conta</h2>
+                    <div class="setup-group">
+                        <label for="signup-email">Email:</label>
+                        <input type="email" id="signup-email" placeholder="Digite seu email" required>
+                    </div>
+                    <div class="setup-group">
+                        <label for="signup-pass">Senha:</label>
+                        <input type="password" id="signup-pass" placeholder="Crie uma senha" required>
+                    </div>
+                    <button id="signup-button" class="primary-button">Cadastrar</button>
+                    <div class="auth-toggle">
+                        <p>Já tem uma conta? <a id="show-login">Faça Login</a></p>
+                    </div>
+                </div>
+                <!-- Mensagem de Erro -->
+                <div id="error-message" class="error-message"></div>
+            </div>
+        </section>
+
+        <!-- Conteúdo Principal do App (inicialmente oculto) -->
+        <div id="app-content" class="hidden-section">
+            <div id="user-info">
+                <p>Logado como: <strong id="user-email-display"></strong></p>
+                <button id="logout-button" class="primary-button small-button">Sair</button>
+            </div>
+
+
+
+
+        <section id="initial-setup" class="hidden-section">
             <h2>Configuração da Simulação</h2>
             <div class="setup-container">
                 <div class="setup-group">
@@ -34,20 +135,20 @@
                     <select id="exam-year" required>
                         <option value="" disabled selected>Selecione o ano</option>
                         <option value="2021">2021</option>
-			<option value="2020">2020</option>
+                        <option value="2020">2020</option>
                         <option value="2019">2019</option>
                         <option value="2018">2018</option>
-			<option value="2017">2017</option>
-                        </select>
+                        <option value="2017">2017</option>
+                    </select>
                 </div>
 
                 <div class="setup-group">
-    		    <label for="exam-book">Número do Caderno:</label>
-  		    <select id="exam-book" required>
-        		<option value="" disabled selected>Selecione o número</option>
-        		<option value="5">5</option>
-    		    </select>
-		</div>
+                    <label for="exam-book">Número do Caderno:</label>
+                    <select id="exam-book" required>
+                        <option value="" disabled selected>Selecione o número</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
 
                 <div class="setup-group">
                     <label for="exam-color">Cor do Caderno:</label>
@@ -62,45 +163,33 @@
                     <select id="exam-type" required>
                         <option value="" disabled selected>Selecione o tipo</option>
                         <option value="regular">Aplicação Regular</option>
-			<option value="reaplicacao">Reaplicação</option>
+                        <option value="reaplicacao">Reaplicação</option>
                     </select>
                 </div>
                 <div class="setup-group checkbox-group">
                     <input type="checkbox" id="accessibility-option" name="accessibility-option">
                     <label for="accessibility-option">Tempo adicional para pessoas com deficiência (1 hora a mais)</label>
                 </div>
-  		<div class="setup-group">
-   		     <label for="user-name">Seu Nome:</label>
- 	  	     <input type="text" id="user-name" required
-          		     placeholder="Digite seu nome">
-  		</div>
+                <div class="setup-group">
+                    <label for="user-name">Seu Nome:</label>
+                    <input type="text" id="user-name" required placeholder="Digite seu nome">
+                </div>
 
+                <div class="setup-group">
+                    <label for="pdf-upload">Carregar PDF da Prova:</label>
+                    <input type="file" id="pdf-upload" accept="application/pdf">
+                </div>
+                <button id="start-setup" class="primary-button">Iniciar Simulação</button>
 
-	<!-- INÍCIO: Upload de PDF pelo usuário -->
-	<div class="setup-group">
-	  <label for="pdf-upload">Carregar PDF da Prova:</label>
-	  <input type="file" id="pdf-upload" accept="application/pdf">
-	</div>
-	<!-- FIM: Upload de PDF pelo usuário -->
+                <div class="setup-group" style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 100%; margin-top: 1rem;">
+                    <button id="show-instructions" class="secondary-button small-button">
+                        Instruções de Uso
+                    </button>
 
-<button id="start-setup" class="primary-button">Iniciar Simulação</button>
-
-<div class="setup-group" style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 100%; margin-top: 1rem;">
-  <!-- botão original de instruções -->
-  <button id="show-instructions" class="secondary-button small-button">
-    Instruções de Uso
-  </button>
-
-  <!-- novo botão vermelho -->
-  <button
-    onclick="window.open('https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-ze-max','_blank')"
-    class="primary-button"
-    style="background-color: red; border: none; padding: 0.6rem 1.2rem; font-size: 0.9rem;"
-  >
-    Acessar agente IA Zé Max
-  </button>
-</div>
-
+                    <button onclick="window.open('https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-ze-max','_blank')" class="primary-button" style="background-color: red; border: none; padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                        Acessar agente IA Zé Max
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -165,11 +254,9 @@
             </div>
         </section>
 
-        <!-- Janela flutuante de contagem regressiva -->
         <div id="countdown-timer" class="hidden-section">
             <div id="countdown-intervals-container">
-                <!-- Os intervalos de tempo serão adicionados dinamicamente pelo JavaScript -->
-            </div>
+                </div>
         </div>
 
         <section id="stats-panel" class="hidden-section">
@@ -191,23 +278,18 @@
             </div>
 
             <div class="questions-container">
-                <!-- Linguagens -->
                 <div class="area-questions" id="linguagens-questions">
                     <h3>Linguagens, Códigos e suas Tecnologias (Questões 01-45)</h3>
                     <div class="questions-grid">
-                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Humanas -->
                 <div class="area-questions" id="humanas-questions">
                     <h3>Ciências Humanas e suas Tecnologias (Questões 46-90)</h3>
                     <div class="questions-grid">
-                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Redação -->
                 <div class="area-questions" id="redacao-questions">
                     <h3>Redação</h3>
                     <div class="redacao-container">
@@ -216,74 +298,63 @@
                     </div>
                 </div>
 
-                <!-- Natureza -->
                 <div class="area-questions" id="natureza-questions">
                     <h3>Ciências da Natureza e suas Tecnologias (Questões 91-135)</h3>
                     <div class="questions-grid">
-                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Matemática -->
                 <div class="area-questions" id="matematica-questions">
                     <h3>Matemática e suas Tecnologias (Questões 136-180)</h3>
                     <div class="questions-grid">
-                        <!-- Questões serão geradas dinamicamente pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </section>
 
-     <section id="question-modal" class="modal hidden-section">
-         <div class="modal-content">
+        <section id="question-modal" class="modal hidden-section">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="modal-question-number">Questão X</h3>
                     <span id="modal-close" class="close-button">&times;</span>
                 </div>
-              
-
-	<div class="modal-body question-flex">
-   	   <!-- NOVO: visor PDF -->
-   	   <div class="pdf-viewer-box">
-      		 <!-- src será preenchido via JS -->
-       		<iframe id="pdf-viewer"
-             	   src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.1.392/web/viewer.html"
-              	   style="width:100%; height:100%; border:none;">
-		</iframe>
-   	   </div>
-	   <!-- alternativas + botão -->
-	   <div class="side-panel">
-                    <div class="alternatives">
-                        <div class="alternative">
-                            <input type="radio" name="question-alternative" id="alt-a" value="a">
-                            <label for="alt-a">A</label>
+                <div class="modal-body question-flex">
+                    <div class="pdf-viewer-box">
+                        <iframe id="pdf-viewer" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.1.392/web/viewer.html" style="width:100%; height:100%; border:none;">
+                        </iframe>
+                    </div>
+                    <div class="side-panel">
+                        <div class="alternatives">
+                            <div class="alternative">
+                                <input type="radio" name="question-alternative" id="alt-a" value="a">
+                                <label for="alt-a">A</label>
+                            </div>
+                            <div class="alternative">
+                                <input type="radio" name="question-alternative" id="alt-b" value="b">
+                                <label for="alt-b">B</label>
+                            </div>
+                            <div class="alternative">
+                                <input type="radio" name="question-alternative" id="alt-c" value="c">
+                                <label for="alt-c">C</label>
+                            </div>
+                            <div class="alternative">
+                                <input type="radio" name="question-alternative" id="alt-d" value="d">
+                                <label for="alt-d">D</label>
+                            </div>
+                            <div class="alternative">
+                                <input type="radio" name="question-alternative" id="alt-e" value="e">
+                                <label for="alt-e">E</label>
+                            </div>
+                            <div class="save-wrapper">
+                                <button id="save-answer" class="primary-button">
+                                    Salvar
+                                </button>
+                            </div>
                         </div>
-                        <div class="alternative">
-                            <input type="radio" name="question-alternative" id="alt-b" value="b">
-                            <label for="alt-b">B</label>
-                        </div>
-                        <div class="alternative">
-                            <input type="radio" name="question-alternative" id="alt-c" value="c">
-                            <label for="alt-c">C</label>
-                        </div>
-                        <div class="alternative">
-                            <input type="radio" name="question-alternative" id="alt-d" value="d">
-                            <label for="alt-d">D</label>
-                        </div>
-                        <div class="alternative">
-                            <input type="radio" name="question-alternative" id="alt-e" value="e">
-                            <label for="alt-e">E</label>
-                        </div>
-		   <div class="save-wrapper">
-		   	<button id="save-answer" class="primary-button">
-				Salvar
-		   	</button>
-		   </div>
-		</div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>	
-     </section>
+        </section>
 
         <section id="results-section" class="hidden-section">
             <h2>Resultados da Simulação</h2>
@@ -291,18 +362,15 @@
                 <div class="results-summary">
                     <h3>Resumo da Prova</h3>
                     <div id="summary-content">
-                        <!-- Conteúdo será preenchido pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
                 <div class="results-metrics">
                     <h3>Métricas de Desempenho</h3>
                     <div id="metrics-content">
-                        <!-- Conteúdo será preenchido pelo JavaScript -->
-                    </div>
+                        </div>
                 </div>
                 <div class="results-actions">
                     <button id="download-results" class="primary-button">Baixar Relatório Completo</button>
-                    
                     <button id="new-simulation" class="secondary-button">Nova Simulação</button>
                 </div>
             </div>
@@ -312,94 +380,228 @@
             <h2>Histórico de Simulações</h2>
             <div class="history-container">
                 <div id="history-list">
-                    <!-- Histórico será preenchido pelo JavaScript -->
                     <p>Nenhuma simulação encontrada no histórico.</p>
                 </div>
             </div>
         </section>
     </main>
 
+
+
     <footer>
-  <p>&copy; 2025 ENEMetria - Simule. Meça. Evolua.</p>
-  <p>
-    Duvidas? Fale comigo: 
-    <a href="mailto:alanpablolima7@gmail.com">alanpablolima7@gmail.com</a> |
-    WhatsApp: 
-    <a href="https://wa.me/5583994021197" target="_blank">+55 (83) 99402-1197</a>
-  </p>
-</footer>
+        <p>&copy; 2025 ENEMetria - Simule. Meça. Evolua.</p>
+        <p>
+            Duvidas? Fale comigo:
+            <a href="mailto:alanpablolima7@gmail.com">alanpablolima7@gmail.com</a> |
+            WhatsApp:
+            <a href="https://wa.me/5583994021197" target="_blank">+55 (83) 99402-1197</a>
+        </p>
+    </footer>
 
-<!-- Modal para inserir gabarito manual -->
-<div id="gabarito-modal" class="modal hidden-section">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Insira o Gabarito Oficial</h3>
-      <span id="close-gabarito-modal" class="close-button">&times;</span>
+
+
+    <div id="gabarito-modal" class="modal hidden-section">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Insira o Gabarito Oficial</h3>
+                <span id="close-gabarito-modal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Copie e cole abaixo o gabarito da prova, um por linha, no formato <b>número alternatica</b> (ex: <code>1 A</code>, <code>2 B</code>, ...):</p>
+                <textarea id="gabarito-manual-input" style="width:100%;min-height:200px;"></textarea>
+                <div style="text-align:right;margin-top:1rem;">
+                    <button id="save-gabarito-manual" class="primary-button">Salvar Gabarito</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="modal-body">
-      <p>Copie e cole abaixo o gabarito da prova, um por linha, no formato <b>número alternatica</b> (ex: <code>1 A</code>, <code>2 B</code>, ...):</p>
-      <textarea id="gabarito-manual-input" style="width:100%;min-height:200px;"></textarea>
-      <div style="text-align:right;margin-top:1rem;">
-        <button id="save-gabarito-manual" class="primary-button">Salvar Gabarito</button>
-      </div>
+
+    <!-- NOVO: Modal Genérico para Notificações e Confirmações -->
+    <div id="generic-modal" class="modal hidden-section">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 id="generic-modal-title">Aviso</h3>
+                <span id="generic-modal-close" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="generic-modal-message">Mensagem aqui.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="generic-modal-confirm-btn" class="primary-button">Confirmar</button>
+                <button id="generic-modal-cancel-btn" class="secondary-button">Cancelar</button>
+                <button id="generic-modal-ok-btn" class="primary-button">OK</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 
-    <script src="script.js"></script>
-  <!-- Modal de Instruções de Uso -->
-  <div id="instructions-modal" class="modal hidden-section">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Instruções de Uso</h3>
-      <span id="close-instructions" class="close-button">&times;</span>
+    <!-- Script de Integração com Firebase -->
+    <script type="module">
+      // Importa as funções necessárias dos SDKs do Firebase
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { 
+        getAuth, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBkFQWm0cluT6qfrrv1cyXxdpAKV9NXInk",
+        authDomain: "enemetria-site-d550a.firebaseapp.com",
+        projectId: "enemetria-site-d550a",
+        storageBucket: "enemetria-site-d550a.appspot.com",
+        messagingSenderId: "278866096830",
+        appId: "1:278866096830:web:a14395821b88670910e4ef",
+        measurementId: "G-FRRPDHKKSR"
+      };
+
+      // Inicializa o Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // --- REFERÊNCIAS AOS ELEMENTOS DO DOM ---
+      const authSection = document.getElementById('auth-section');
+      const appContent = document.getElementById('app-content');
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const showSignupLink = document.getElementById('show-signup');
+      const showLoginLink = document.getElementById('show-login');
+      const loginButton = document.getElementById('login-button');
+      const signupButton = document.getElementById('signup-button');
+      const logoutButton = document.getElementById('logout-button');
+      const userEmailDisplay = document.getElementById('user-email-display');
+      const errorMessageDiv = document.getElementById('error-message');
+
+      // --- FUNÇÕES AUXILIARES ---
+      function showErrorMessage(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+      }
+      function clearErrorMessage() {
+        errorMessageDiv.textContent = '';
+        errorMessageDiv.style.display = 'none';
+      }
+      showSignupLink.addEventListener('click', () => {
+        loginForm.classList.add('hidden-section');
+        signupForm.classList.remove('hidden-section');
+        clearErrorMessage();
+      });
+      showLoginLink.addEventListener('click', () => {
+        signupForm.classList.add('hidden-section');
+        loginForm.classList.remove('hidden-section');
+        clearErrorMessage();
+      });
+
+      // --- LÓGICA DE AUTENTICAÇÃO ---
+      signupButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearErrorMessage();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-pass').value;
+        if (!email || !password) {
+            showErrorMessage("Por favor, preencha todos os campos.");
+            return;
+        }
+        createUserWithEmailAndPassword(auth, email, password)
+          .catch((error) => {
+            let friendlyMessage = "Ocorreu um erro ao tentar cadastrar.";
+            if (error.code === 'auth/email-already-in-use') friendlyMessage = "Este email já está em uso.";
+            else if (error.code === 'auth/weak-password') friendlyMessage = "A senha é muito fraca. Use pelo menos 6 caracteres.";
+            else if (error.code === 'auth/invalid-email') friendlyMessage = "O formato do email é inválido.";
+            showErrorMessage(friendlyMessage);
+          });
+      });
+      loginButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearErrorMessage();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-pass').value;
+        if (!email || !password) {
+            showErrorMessage("Por favor, preencha todos os campos.");
+            return;
+        }
+        signInWithEmailAndPassword(auth, email, password)
+          .catch((error) => {
+            let friendlyMessage = "Email ou senha incorretos.";
+            showErrorMessage(friendlyMessage);
+          });
+      });
+      logoutButton.addEventListener('click', () => {
+        signOut(auth).catch((error) => {
+            showErrorMessage("Ocorreu um erro ao tentar sair.");
+        });
+      });
+      
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          authSection.classList.add('hidden-section');
+          appContent.classList.remove('hidden-section');
+          userEmailDisplay.textContent = user.email;
+           const initialSetupSection = document.getElementById('initial-setup');
+           initialSetupSection.classList.remove('hidden-section');
+           initialSetupSection.classList.add('active-section');
+        } else {
+          authSection.classList.remove('hidden-section');
+          appContent.classList.add('hidden-section');
+          signupForm.classList.add('hidden-section');
+          loginForm.classList.remove('hidden-section');
+          clearErrorMessage();
+        }
+      });
+    </script>
+
+
+    <script type="module" src="script.js"></script>
+    <div id="instructions-modal" class="modal hidden-section">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Instruções de Uso</h3>
+                <span id="close-instructions" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>Como funciona o ENEMetria:</strong>
+                    O ENEMetria simula a experiência real da prova do ENEM enquanto coleta métricas de desempenho (tempo, estratégia e resultado).</p>
+
+                <h4>Como usar?</h4>
+                <ol>
+                    <li>O sistema tem alguns provas já em seu banco de dados, mas você tambêm pode Baixar o PDF de uma prova no
+                        <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos" target="_blank">site do INEP</a>.</li>
+                    <li>Nas configurações, selecione dia, ano, número, cor e tipo de aplicação da prova que deseja simular e clique em <em>“Iniciar Simulação”</em>.</li>
+                    <li>Quando clicar em <em>“Iniciar Prova”</em>; o sistema começará a coletar dados de como o estudante resolve a prova.</li>
+                    <li>Clique na questão que deseja responder; uma caixa de alternativas com o PDF da prova é aberto e se inicia o contador de tempo daquela questão.</li>
+                    <li>Resolva uma questão e marque a alternativa, depois clique em "salvar", ou feche a caixa para pular a questão.</li>
+                    <li>Não é indicado chutar questões, devendo deixá-las em branco, uma vez que pode alterar o diagnóstico da IA. Se não sabe, apenas feche a questão.</li>
+                    <li>Caso decida revisar uma questão, é só abrir novamente, marcar outra alternativa e clicar em "salvar" e feche a janela.</li>
+                    <li>Se decidir mudar a resposta, mas não clicar em "Salvar", o sistema não registrará a nova resposta.</li>
+                    <li>Ao terminar, clique em <em>“Finalizar Prova”</em> e em seguida <em>“Baixar Relatório”</em>.</li>
+                </ol>
+
+                <p>Um relatório com metadados será gerado para análise pelo agente de IA.</p>
+                <p><strong>OBS:</strong> Se for para outra questão, salve a resposta e fecehe a janela da questão atual, caso contrário os metadados que medem seu desempenho ficarão imprecisos.</p>
+            </div>
+        </div>
     </div>
-    <div class="modal-body">
-      <p><strong>Como funciona o ENEMetria:</strong>  
-      O ENEMetria simula a experiência real da prova do ENEM enquanto coleta métricas de desempenho (tempo, estratégia e resultado).</p>
 
-      <h4>Como usar?</h4>
-      <ol>
-        <li>O sistema tem alguns provas já em seu banco de dados, mas você tambêm pode Baixar o PDF de uma prova no  
-            <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos" 
-               target="_blank">site do INEP</a>.</li>
-        <li>Nas configurações, selecione dia, ano, número, cor e tipo de aplicação da prova que deseja simular e clique em <em>“Iniciar Simulação”</em>.</li>
-        <li>Quando clicar em <em>“Iniciar Prova”</em>; o sistema começará a coletar dados de como o estudante resolve a prova.</li>
-        <li>Clique na questão que deseja responder; uma caixa de alternativas com o PDF da prova é aberto e se inicia o contador de tempo daquela questão.</li>
-        <li>Resolva uma questão e marque a alternativa, depois clique em "salvar", ou feche a caixa para pular a questão.</li>
-	<li>Não é indicado chutar questões, devendo deixá-las em branco, uma vez que pode alterar o diagnóstico da IA. Se não sabe, apenas feche a questão.</li>
-	<li>Caso decida revisar uma questão, é só abrir novamente, marcar outra alternativa e clicar em "salvar" e feche a janela.</li>
-	<li>Se decidir mudar a resposta, mas não clicar em "Salvar", o sistema não registrará a nova resposta.</li>
-        <li>Ao terminar, clique em <em>“Finalizar Prova”</em> e em seguida <em>“Baixar Relatório”</em>.</li>
-      </ol>
-
-      <p>Um relatório com metadados será gerado para análise pelo agente de IA.</p>
-      <p><strong>OBS:</strong> Se for para outra questão, salve a resposta e fecehe a janela da questão atual, caso contrário os metadados que medem seu desempenho ficarão imprecisos.</p>
+    <div id="ia-agent-modal" class="modal hidden-section">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Análise com Agente de Inteligência Artificial</h3>
+                <span id="close-ia-modal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Seu relatório foi gerado com sucesso!</p>
+                <p>Para obter uma análise completa dos seus dados e receber uma mentoria personalizada sobre como melhorar seu desempenho no ENEM, envie o relatório baixado para o agente de inteligência artificial no link abaixo:</p>
+                <p style="text-align: center; margin-top: 1rem;">
+                    <a href="https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-zemetria" target="_blank" style="font-size: 1.1rem; font-weight: bold; color: #3498db;">
+                        Acessar Agente Professor Zé Max
+                    </a>
+                </p>
+                <p style="margin-top: 1rem;">Esse agente vai ler os metadados contidos no relatório e te mostrar em quais áreas você precisa melhorar, oferecendo estratégias e resoluções orientadas.</p>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
-<!-- Modal com link para agente IA -->
-<div id="ia-agent-modal" class="modal hidden-section">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Análise com Agente de Inteligência Artificial</h3>
-      <span id="close-ia-modal" class="close-button">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p>Seu relatório foi gerado com sucesso!</p>
-      <p>Para obter uma análise completa dos seus dados e receber uma mentoria personalizada sobre como melhorar seu desempenho no ENEM, envie o relatório baixado para o agente de inteligência artificial no link abaixo:</p>
-      <p style="text-align: center; margin-top: 1rem;">
-        <a href="https://chatgpt.com/g/g-68092d6d742881919de05b5798990612-professor-zemetria" target="_blank" style="font-size: 1.1rem; font-weight: bold; color: #3498db;">
-          Acessar Agente Professor Zé Max
-        </a>
-      </p>
-      <p style="margin-top: 1rem;">Esse agente vai ler os metadados contidos no relatório e te mostrar em quais áreas você precisa melhorar, oferecendo estratégias e resoluções orientadas.</p>
-    </div>
-  </div>
-</div>
-
 
 </body>
 </html>
