@@ -873,3 +873,26 @@ select, input[type="number"], input[type="text"], input[type="password"] {
     font-size: 1rem;
     transition: var(--transition);
 }
+
+/* ===== Modal de Nível de Confiança ===== */
+.confidence-levels{
+  display:flex;
+  gap:.5rem;
+  justify-content:center;
+  margin:.75rem 0 .5rem;
+}
+.conf-btn{
+  border:1px solid #ddd;
+  padding:.6rem .9rem;
+  font-size:1rem;
+  background:#fff;
+  border-radius:6px;
+  cursor:pointer;
+  transition:var(--transition);
+}
+.conf-btn:hover{ transform:translateY(-2px); }
+.conf-btn.active{
+  background:var(--primary-color);
+  color:#fff;
+  border-color:var(--primary-color);
+}
