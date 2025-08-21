@@ -245,7 +245,7 @@
                 <div class="control-buttons">
                     <button id="start-exam" class="control-button"><i class="fas fa-play"></i> Iniciar Prova</button>
                     <button id="pause-exam" class="control-button" disabled><i class="fas fa-pause"></i> Pausar Prova</button>
-                    <button id="finish-exam" class="control-button" disabled><i class="fas fa-flag-checkered"></i> Finalizar Prova</button>
+                    <button id="finish-exam" type="button" class="control-button"><i class="fas fa-flag-checkered"></i> Finalizar Prova</button>
                     <button id="download-report" class="control-button" disabled><i class="fas fa-download"></i> Baixar Relatório</button>
                 </div>
                 <div class="status-display">
@@ -623,6 +623,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Nível de Confiança -->
+<div id="confidence-modal" class="modal hidden-section">
+  <div class="modal-content" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Avalie sua confiança</h3>
+      <span id="confidence-close" class="close-button">&times;</span>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <p>Quão confiante você está nessa resposta?</p>
+      <div id="confidence-levels" class="confidence-levels">
+        <button class="conf-btn" data-level="1">1</button>
+        <button class="conf-btn" data-level="2">2</button>
+        <button class="conf-btn" data-level="3">3</button>
+        <button class="conf-btn" data-level="4">4</button>
+        <button class="conf-btn" data-level="5">5</button>
+      </div>
+      <small>1 = Vou chutar | 5 = totalmente confiante</small>
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>
