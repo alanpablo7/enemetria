@@ -34,3 +34,19 @@ Itens com problemas de material ou solução preliminar ficam identificados em `
 As classificações são anexadas somente depois de finalizar a simulação; não são renderizadas durante a resolução.
 
 Verificação automatizada: execute node tests/exam-report.test.cjs na raiz do projeto.
+
+## Rastreamento de resolução — dados de sessão 2.0.0
+
+`session-tracker.js` registra dados sem interpretação pedagógica adicional. Cada sessão possui um ID próprio. IDs de tentativas e de confirmações incluem prova e sessão para não colidir ao juntar relatórios de vários alunos ou treinos.
+
+Cada abertura de questão registra uma tentativa: primeira abertura, retorno ainda sem resposta ou revisão de questão já respondida. A tentativa preserva início, fim, duração ativa, resposta/confiança de entrada e saída, motivo do encerramento, seleções provisórias e IDs das confirmações. Pausas não entram na duração.
+
+Uma decisão de pular é exclusivamente o fechamento voluntário de uma tentativa ainda sem resposta salva. Encerramentos por fim da prova ou tempo esgotado são separados. Voltar e depois responder não apaga os pulos anteriores. Um fechamento bloqueado por confiança pendente não encerra a tentativa.
+
+O histórico guarda cada resposta confirmada com confiança, incluindo primeira resposta, troca efetiva e reconfirmação da mesma alternativa. Só a troca efetiva altera o contador de mudanças. Seleções sem confirmação não substituem a resposta salva.
+
+O saldo líquido de revisão é calculado por questão, comparando a resposta na entrada da primeira revisão respondida com a resposta final. A contagem por evento é exibida separadamente: certa → errada → certa tem dois eventos e saldo zero. Revisar sem trocar conta como revisão, mas não como mudança. Trocas antes de fechar a primeira tentativa não são atribuídas a revisões posteriores.
+
+O TXT contém resumos factuais, histórico de confirmações, decisões individuais de pular, registro de todas as tentativas e um bloco `SESSAO_ESTRUTURADA_JSON_INICIO` / `SESSAO_ESTRUTURADA_JSON_FIM`. O JSON inclui metadados da sessão/prova/gabarito, rastreamento bruto e resumos derivados. Referências ao histórico ficam em cada ficha `DESEMPENHO_OBSERVADO_JSON` do anexo pedagógico. Eventos antigos não são reconstruídos a partir de contadores agregados: sem rastreamento compatível, os vínculos ficam null.
+
+Verificações de rastreamento: `node tests/session-tracker.test.cjs` e `node tests/session-integration.test.cjs`. O segundo teste gera um relatório demonstrativo em `../output/pcpe-relatorio-revisoes-exemplo.txt`, com dados fictícios.

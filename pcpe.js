@@ -5,6 +5,7 @@
   const questions = exam.questions;
   const answerKey = exam.answerKey;
   const records = {}, areaTimes = {}, order = [];
+  const sessionTracker = window.EnemetriaSessionTracker.create(exam.id);
   let running = false, paused = false, finished = false, finishing = false;
   let elapsed = 0, limit = 16200, lastTick = 0, active = null, idle = 0, pauseTime = 0, timer;
   let draft = '', finalText = '', startedAt = null, finishedAt = null;
@@ -75,7 +76,7 @@
     return true;
   }
 
-  function closeActive({force = false} = {}) {
+  function closeActive({force = false, reason = 'fechamento_usuario'} = {}) {
     if (!force && requireConfidence()) return false;
     tick();
     if (!active) return true;
@@ -87,6 +88,7 @@
       if (session.review) r.reviewTime += elapsed - session.start;
       if (session.selection !== null) r.afterSelection += elapsed - session.selection;
       if (session.pending !== null) r.pendingAtTimeout = true;
+      sessionTracker.closeQuestion(session.attemptId, elapsed, reason);
       r.skipped = !r.answer;
       $('question-dialog').close();
     } else {
@@ -113,7 +115,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     const r = records[number] ||= {time: 0, visits: 0, reviewTime: 0, changes: 0, afterSelection: 0, answer: null, confidence: null, firstChoice: null, firstPassTimeSeconds: null, answeredRevisits: 0};
     r.visits++;
     if (r.answer) r.answeredRevisits++;
-    active = {kind: 'question', n: number, start: elapsed, area: q.subject, review: !!r.answer, selection: null, pending: null};
+    active = {kind: 'question', n: number, start: elapsed, area: q.subject, review: !!r.answer, selection: null, pending: null, attemptId: sessionTracker.openQuestion(number, elapsed)};
     order.push({activity: 'Questão ' + number, event: 'abertura', time: elapsed});
     paint(number);
     $('question-title').textContent = 'Questão ' + String(number).padStart(2, '0');
@@ -142,6 +144,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       button.append(badge, text);
       button.onclick = () => {
         tick(); if (!active || finished) return;
+        sessionTracker.selectAnswer(active.attemptId, letter, elapsed);
         active.pending = letter;
         if (r.firstChoice === null) r.firstChoice = r.time + elapsed - active.start;
         active.selection = elapsed;
@@ -180,6 +183,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     button.onclick = () => {
       tick(); if (active?.kind !== 'question' || active.pending === null || finished) return;
       const r = records[active.n];
+      sessionTracker.saveAnswer(active.attemptId, active.pending, confidence, elapsed);
       if (r.answer && r.answer !== active.pending) r.changes++;
       r.answer = active.pending; r.confidence = confidence; r.skipped = false;
       active.pending = null;
@@ -250,6 +254,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     }).join('') + '</tbody></table>';
     const values = Object.values(records), reviewed = values.filter(r => r.visits > 1).length, changes = values.reduce((sum, r) => sum + r.changes, 0);
     $('strategy').innerHTML = '<div class="strategy-grid">' + [[fmt(elapsed), 'tempo de prova'], [fmt(idle), 'sem atividade aberta'], [reviewed, 'questões reabertas'], [changes, 'mudanças de resposta']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">O relatório TXT inclui a ordem de resolução, os tempos de cada questão e os textos da discursiva.</p>';
+    renderTraceSummary();
     $('question-results').innerHTML = '<table><thead><tr><th>Questão</th><th>Sua resposta</th><th>Gabarito</th><th>Resultado</th><th>Confiança</th><th>Tempo</th></tr></thead><tbody>' + questionNumbers().map(n => {
       const r = records[n], blank = !r?.answer, correct = r?.answer === answerKey[n];
       return '<tr><td>' + String(n).padStart(2, '0') + '</td><td>' + (r?.answer || '—') + '</td><td>' + answerKey[n] + '</td><td><span class="badge ' + (blank ? 'blank' : correct ? '' : 'wrong') + '">' + (blank ? 'Em branco' : correct ? 'Acerto' : 'Erro') + '</span></td><td>' + (r?.confidence ? r.confidence + '/5' : '—') + '</td><td>' + fmt(r?.time || 0) + '</td></tr>';
@@ -257,9 +262,16 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     $('answer-key').textContent = questionNumbers().map(n => n + ': ' + answerKey[n]).join('  ·  ');
   }
 
+  function renderTraceSummary() {
+    const summary = window.EnemetriaSessionTracker.summarize(exam, sessionTracker.snapshot());
+    const net = summary.netReview;
+    const signed = net.netPoints > 0 ? '+' + net.netPoints : String(net.netPoints);
+    $('trace-summary').innerHTML = '<div class="strategy-grid">' + [[net.reviewedQuestions, 'questões respondidas revisadas'], [net.reviewedQuestions ? net.correctAtEnd + '/' + (net.reviewedQuestions - net.withoutKey) : '—', 'acertos finais nas revisadas'], [signed, 'saldo líquido em acertos'], [summary.skips.decisions, 'decisões de pular']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">Tempo acumulado antes das decisões de pular: ' + fmt(summary.skips.totalSeconds) + '. O TXT detalha cada tentativa e cada resposta confirmada. Saldo calculado pelo gabarito preliminar.</p>';
+  }
+
   function report() {
     const overall = score(questionNumbers());
-    let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\nBANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
+    let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\nBANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate + '\nSESSÃO_ID: ' + sessionTracker.sessionId + '\nVERSÃO_DADOS_SESSÃO: ' + window.EnemetriaSessionTracker.schemaVersion + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
     text += 'Acertos: ' + overall.correct + '/60 (' + overall.percent + '%)\nErros: ' + overall.wrong + '\nEm branco: ' + overall.blank + '\nTempo de prova: ' + fmt(elapsed) + '\nPausas: ' + fmt(pauseTime) + '\nSem atividade aberta: ' + fmt(idle) + '\n\nDESEMPENHO POR BLOCO E DISCIPLINA\n';
     for (const [label, nums] of [['P1', questionNumbers('P1')], ['P2', questionNumbers('P2')], ...subjects.map(s => [s, Object.values(questions).filter(q => q.subject === s).map(q => q.number)])]) {
       const s = score(nums); text += label + ': ' + s.correct + '/' + s.total + ' acertos (' + s.percent + '%), ' + s.wrong + ' erros, ' + s.blank + ' em branco.\n';
@@ -271,9 +283,11 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       text += [n, r?.answer || 'em branco', answerKey[n], !r?.answer ? 'em branco' : r.answer === answerKey[n] ? 'acerto' : 'erro', r?.confidence || '—', fmt(r?.time || 0), r?.firstChoice == null ? '—' : fmt(r.firstChoice), fmt(r?.afterSelection || 0), Math.max(0, (r?.visits || 0) - 1), fmt(r?.reviewTime || 0), r?.changes || 0].join(' | ') + '\n';
       if (r?.pendingAtTimeout) text += '  Tempo encerrado com nova seleção sem confiança: preservada apenas a resposta previamente salva, se existente.\n';
     }
+    const sessionTrace = sessionTracker.snapshot();
+    text += window.EnemetriaReports.buildTraceSection(exam, {sessionTrace, startedAt, finishedAt, elapsedSeconds: elapsed, pauseSeconds: pauseTime, idleSeconds: idle});
     text += '\nORDEM DE RESOLUÇÃO\n' + order.map(o => fmt(o.time) + ' | ' + o.activity + ' | ' + o.event).join('\n');
     const performanceReport = text + '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática. Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
-    return performanceReport + window.EnemetriaReports.buildAppendix(exam, {records, order});
+    return performanceReport + window.EnemetriaReports.buildAppendix(exam, {records, order, sessionTrace});
   }
 
   function finish(auto = false, confirmed = false) {
@@ -288,7 +302,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       $('finish-dialog').showModal(); return;
     }
     if ($('finish-dialog').open) $('finish-dialog').close();
-    finishing = true; tick(); closeActive({force: true}); running = false; finished = true; finishing = false; finishedAt = new Date().toISOString();
+    finishing = true; tick(); closeActive({force: true, reason: auto ? 'tempo_esgotado' : 'fim_prova'}); running = false; finished = true; finishing = false; finishedAt = new Date().toISOString();
     clearInterval(timer); $('exam').hidden = true; $('results').hidden = false; renderResults(auto); window.scrollTo(0, 0);
   }
   $('finish').onclick = () => finish();
