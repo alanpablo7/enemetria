@@ -10,21 +10,22 @@
     <h2>Prepare sua simulação</h2>
     <div class="facts"><span class="fact">60 questões objetivas</span><span class="fact">P1 · 20 questões</span><span class="fact">P2 · 40 questões</span><span class="fact">Redação · até 30 linhas</span></div>
     <p class="muted">P1: Noções de Direito. P2: Conhecimentos Específicos. A redação deve abordar um tema de atualidade ligado à segurança pública.</p>
-    <p class="notice">Este é um modelo de treino com a estrutura informada. A prova e o gabarito devem ser fornecidos por você; confira as regras no edital aplicável.</p>
+    <p class="notice"><strong>Prova disponível: PC PE 2023.</strong> O caderno objetivo recebido contém apenas as questões 21 a 60. Para responder às questões 1 a 20, use também o caderno de Noções de Direito. O gabarito ainda não foi fornecido e poderá ser inserido ao final.</p>
     <p class="muted">Mantenha esta página aberta durante a prova: as respostas não são salvas ao recarregar ou fechar a página. Ao terminar, baixe o relatório.</p>
     <label for="duration">Duração da prova</label><select id="duration"><option value="270">4h30min</option><option value="300">5 horas</option></select>
-    <label for="pdf">Prova em PDF (opcional)</label><input id="pdf" type="file" accept="application/pdf,.pdf"><p class="muted">Você também pode usar uma prova impressa ou aberta em outro dispositivo. O PDF fica no seu navegador.</p>
-    <label for="theme">Tema da redação (opcional)</label><input id="theme" type="text" maxlength="220" placeholder="Digite o tema da sua prova">
+    <label for="pdf">Usar outro caderno objetivo em PDF (opcional)</label><input id="pdf" type="file" accept="application/pdf,.pdf"><p class="muted">Sem outro arquivo, será aberto o caderno recebido de 2023, com as questões 21 a 60. Arquivos escolhidos por você ficam no seu navegador.</p>
+    <label for="theme">Tema da redação</label><input id="theme" type="text" maxlength="220" value="Integração dos sistemas de informação em segurança pública">
+    <p><a href="pdfs/pcpe-2023-discursiva.pdf" target="_blank" rel="noopener">Abrir proposta discursiva de 2023 ↗</a></p>
     <div class="actions"><button id="start">Iniciar simulação</button></div>
   </section>
   <section id="exam" class="hidden">
     <div class="test-head"><div><span class="eyebrow">TEMPO RESTANTE</span><div id="timer" class="timer" aria-live="off">04:30:00</div></div><div class="actions"><button id="pause" class="secondary">Pausar</button><button id="finish">Finalizar simulação</button></div></div>
     <p id="pause-notice" class="notice hidden">Simulação pausada. Retome para continuar.</p>
     <div id="exam-body">
-      <section id="pdf-section" class="panel hidden"><h2>Seu caderno de questões</h2><p class="muted">Se o PDF não aparecer neste navegador, abra-o separadamente.</p><iframe id="pdf-view" class="pdf-frame" title="Prova em PDF"></iframe></section>
+      <section id="pdf-section" class="panel"><h2>Caderno de questões</h2><p class="muted" id="pdf-description"></p><p><a id="pdf-link" target="_blank" rel="noopener">Abrir caderno em outra aba ↗</a></p><iframe id="pdf-view" class="pdf-frame" title="Prova em PDF"></iframe></section>
       <section class="panel"><h2>P1 · Noções de Direito</h2><p class="progress" id="progress-p1"></p><div id="p1" class="grid"></div></section>
       <section class="panel"><h2>P2 · Conhecimentos Específicos</h2><p class="progress" id="progress-p2"></p><div id="p2" class="grid"></div></section>
-      <section class="panel"><h2>Prova discursiva</h2><p id="theme-display" class="muted"></p><p class="muted">Escreva sobre um tema de atualidade relacionado à segurança pública. Limite de referência: 30 linhas; confira as linhas na versão final, pois a quebra varia conforme a tela.</p><label for="essay">Sua redação</label><textarea id="essay" rows="18" placeholder="Escreva sua redação aqui..."></textarea><p id="essay-count" class="progress"></p></section>
+      <section class="panel"><h2>Prova discursiva</h2><p id="theme-display" class="muted"></p><p><a href="pdfs/pcpe-2023-discursiva.pdf" target="_blank" rel="noopener">Consultar a proposta discursiva de 2023 ↗</a></p><p class="muted">A proposta de 2023 pede que sejam abordados os desafios para troca de informações, um modelo existente no Brasil e os impactos da integração no combate à criminalidade. Limite de referência: 30 linhas; confira as linhas na versão final, pois a quebra varia conforme a tela.</p><label for="essay">Sua redação</label><textarea id="essay" rows="18" placeholder="Escreva sua redação aqui..."></textarea><p id="essay-count" class="progress"></p></section>
     </div>
   </section>
   <section id="results" class="hidden">

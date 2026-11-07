@@ -82,8 +82,10 @@
     $('theme-display').textContent = state.theme ? 'Tema: ' + state.theme : 'Tema: utilize o tema da prova escolhida.';
     const file = $('pdf').files[0];
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-    if (file) { pdfUrl = URL.createObjectURL(file); $('pdf-view').src = pdfUrl; $('pdf-section').classList.remove('hidden'); }
-    else $('pdf-section').classList.add('hidden');
+    if (file) pdfUrl = URL.createObjectURL(file);
+    const source = file ? pdfUrl : 'pdfs/pcpe-2023-objetiva-q21-60.pdf';
+    $('pdf-view').src = source; $('pdf-link').href = source;
+    $('pdf-description').textContent = file ? 'Caderno escolhido neste dispositivo.' : 'PC PE 2023 — questões 21 a 60. As questões 1 a 20 não estão neste arquivo.';
     $('setup').classList.add('hidden'); $('exam').classList.remove('hidden');
     $('exam-body').classList.remove('hidden'); $('pause-notice').classList.add('hidden'); $('pause').textContent = 'Pausar';
     renderTimer(); interval = setInterval(renderTimer, 1000); window.scrollTo(0, 0);
