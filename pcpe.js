@@ -1,136 +1,23 @@
-(() => {
-  'use strict';
-  const $ = id => document.getElementById(id);
-  const letters = ['A', 'B', 'C', 'D', 'E'];
-  let state = null, interval = null, pdfUrl = null, report = '';
-  function clock(seconds) {
-    seconds = Math.max(0, Math.ceil(seconds));
-    return [Math.floor(seconds / 3600), Math.floor(seconds % 3600 / 60), seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
-  }
-  function remaining() {
-    return state.paused ? state.remaining : Math.max(0, (state.deadline - Date.now()) / 1000);
-  }
-  function renderTimer() {
-    const left = remaining();
-    $('timer').textContent = clock(left);
-    if (left <= 0 && !state.paused) finish(true);
-  }
-  function updateProgress() {
-    const count = (start, end) => state.answers.slice(start, end).filter(Boolean).length;
-    $('progress-p1').textContent = count(0, 20) + ' de 20 respondidas';
-    $('progress-p2').textContent = count(20, 60) + ' de 40 respondidas';
-  }
-  function createGrid(id, start, end) {
-    const target = $(id);
-    target.textContent = '';
-    for (let n = start; n <= end; n++) {
-      const box = document.createElement('div');
-      box.className = 'question';
-      const title = document.createElement('strong');
-      title.textContent = 'Questão ' + n;
-      box.appendChild(title);
-      const options = document.createElement('div');
-      options.className = 'choices';
-      for (const letter of letters) {
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        input.type = 'radio'; input.name = 'q' + n; input.value = letter;
-        input.setAttribute('aria-label', 'Questão ' + n + ', alternativa ' + letter);
-        input.addEventListener('change', () => { state.answers[n - 1] = letter; updateProgress(); });
-        label.append(input, document.createTextNode(letter));
-        options.appendChild(label);
-      }
-      box.appendChild(options); target.appendChild(box);
-    }
-  }
-  function pause() {
-    if (!state.paused) { state.remaining = remaining(); state.paused = true; }
-    else { state.paused = false; state.deadline = Date.now() + state.remaining * 1000; }
-    $('pause').textContent = state.paused ? 'Retomar' : 'Pausar';
-    $('exam-body').classList.toggle('hidden', state.paused);
-    $('pause-notice').classList.toggle('hidden', !state.paused);
-    renderTimer();
-  }
-  function finish(expired) {
-    if (!state || state.finished) return;
-    if (!expired && !confirm('Finalizar a simulação e seguir para os resultados?')) return;
-    const left = remaining();
-    state.finished = true;
-    state.used = Math.min(state.duration, Math.max(0, state.duration - left));
-    state.essay = $('essay').value.trim();
-    clearInterval(interval);
-    $('exam').classList.add('hidden'); $('results').classList.remove('hidden');
-    $('time-used').textContent = (expired ? 'Tempo encerrado. ' : '') + 'Tempo utilizado: ' + clock(state.used) + ' de ' + clock(state.duration) + '.';
-    const p1 = state.answers.slice(0, 20).filter(Boolean).length;
-    const p2 = state.answers.slice(20).filter(Boolean).length;
-    $('completion').innerHTML = '<div class="result-box"><strong>' + (p1 + p2) + '/60</strong>questões respondidas</div><div class="result-box"><strong>' + p1 + '/20</strong>respondidas em P1</div><div class="result-box"><strong>' + p2 + '/40</strong>respondidas em P2</div>';
-    $('essay-result').textContent = state.essay || 'Nenhuma redação registrada.';
-    updateReport(); window.scrollTo(0, 0);
-  }
-  function updateReport() {
-    if (!state || !state.finished) return;
-    report = 'ENEMetria — Simulado PC PE / Agente de Polícia\n' + $('time-used').textContent + '\n\n';
-    report += 'Respostas: ' + state.answers.map((a, i) => (i + 1) + ':' + (a || '—')).join(' ') + '\n\n';
-    if (state.feedbackText) report += state.feedbackText + '\n\n';
-    else report += 'Desempenho por acertos: informe o gabarito no site para calcular.\n\n';
-    report += 'Tema: ' + (state.theme || 'Não informado') + '\nRedação (sem correção automática):\n' + (state.essay || 'Não registrada.') + '\n';
-  }
-  $('start').addEventListener('click', () => {
-    const duration = Number($('duration').value) * 60;
-    state = { duration, deadline: Date.now() + duration * 1000, remaining: duration, paused: false, finished: false, answers: Array(60).fill(''), theme: $('theme').value.trim(), essay: '' };
-    createGrid('p1', 1, 20); createGrid('p2', 21, 60); updateProgress();
-    $('theme-display').textContent = state.theme ? 'Tema: ' + state.theme : 'Tema: utilize o tema da prova escolhida.';
-    const file = $('pdf').files[0];
-    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-    if (file) pdfUrl = URL.createObjectURL(file);
-    const source = file ? pdfUrl : 'pdfs/pcpe-2023-objetiva-q21-60.pdf';
-    $('pdf-view').src = source; $('pdf-link').href = source;
-    $('pdf-description').textContent = file ? 'Caderno escolhido neste dispositivo.' : 'PC PE 2023 — questões 21 a 60. As questões 1 a 20 não estão neste arquivo.';
-    $('setup').classList.add('hidden'); $('exam').classList.remove('hidden');
-    $('exam-body').classList.remove('hidden'); $('pause-notice').classList.add('hidden'); $('pause').textContent = 'Pausar';
-    renderTimer(); interval = setInterval(renderTimer, 1000); window.scrollTo(0, 0);
-  });
-  $('pause').addEventListener('click', pause);
-  $('finish').addEventListener('click', () => finish(false));
-  $('essay').addEventListener('input', () => {
-    const text = $('essay').value.trim();
-    $('essay-count').textContent = (text ? text.split(/\s+/).length : 0) + ' palavras · confira o limite de linhas no formato final';
-  });
-  $('correct').addEventListener('click', () => {
-    const raw = $('key').value.toUpperCase().trim();
-    if (!/^[A-E\s,;|.-]+$/.test(raw)) { $('key-error').textContent = 'Use apenas as alternativas A, B, C, D ou E e separadores.'; return; }
-    const key = raw.replace(/[\s,;|.-]/g, '').split('');
-    if (key.length !== 60) { $('key-error').textContent = 'São necessárias exatamente 60 alternativas; você informou ' + key.length + '.'; return; }
-    $('key-error').textContent = '';
-    const block = (start, end) => {
-      let correct = 0, wrong = 0, blank = 0;
-      for (let i = start; i < end; i++) {
-        if (!state.answers[i]) blank++;
-        else if (state.answers[i] === key[i]) correct++;
-        else wrong++;
-      }
-      return { correct, wrong, blank, total: end - start };
-    };
-    const p1 = block(0, 20), p2 = block(20, 60), all = block(0, 60);
-    const row = (label, result) => '<div class="result-box"><span>' + label + '</span><strong>' + result.correct + '/' + result.total + '</strong>' + Math.round(result.correct / result.total * 100) + '% de acertos<div class="meter"><span style="width:' + (result.correct / result.total * 100) + '%"></span></div><small>' + result.wrong + ' erradas · ' + result.blank + ' em branco</small></div>';
-    const review = state.answers.map((answer, i) => (i + 1) + ': ' + (answer || 'em branco') + (answer === key[i] ? ' ✓' : ' → ' + key[i]));
-    const p1rate = p1.correct / p1.total, p2rate = p2.correct / p2.total;
-    let guidance = p1rate === p2rate ? 'Os dois blocos tiveram o mesmo percentual de acertos. Revise as questões erradas e não respondidas de ambos.' : 'Priorize a revisão de ' + (p1rate < p2rate ? 'P1 — Noções de Direito' : 'P2 — Conhecimentos Específicos') + ', que teve menor percentual de acertos nesta simulação.';
-    const section = $('feedback');
-    section.innerHTML = '<h2>Seu desempenho</h2><p class="muted">Percentuais sobre o total de questões de cada bloco. Este resultado é um diagnóstico de treino, não uma previsão de aprovação.</p><div class="results-grid">' + row('Total', all) + row('P1 · Noções de Direito', p1) + row('P2 · Conhecimentos Específicos', p2) + '</div><h3>Próximo passo</h3><p>' + guidance + '</p><h3>Revisão por questão</h3><p class="muted">Sua resposta → gabarito; ✓ indica acerto.</p><div class="review">' + review.join('<br>') + '</div>';
-    section.classList.remove('hidden');
-    state.feedbackText = 'Resultado: ' + all.correct + '/60 (' + Math.round(all.correct / 60 * 100) + '%)\nP1: ' + p1.correct + '/20 · P2: ' + p2.correct + '/40\n' + guidance + '\n\nRevisão: ' + review.join(' | ');
-    updateReport(); section.scrollIntoView({behavior:'smooth'});
-  });
-  $('download').addEventListener('click', () => {
-    updateReport(); const url = URL.createObjectURL(new Blob([report], { type: 'text/plain;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = 'enemetria-pcpe-relatorio.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-  $('restart').addEventListener('click', () => { if (confirm('Iniciar outra simulação? As respostas atuais serão apagadas.')) location.reload(); });
-  window.addEventListener('beforeunload', event => {
-    if (state && !state.finished) {
-      event.preventDefault();
-      event.returnValue = '';
-    }
-  });
+(()=>{'use strict';
+const $=id=>document.getElementById(id), Q=window.PCPE_QUESTIONS, subjects=['Língua Portuguesa','Informática e TI','Raciocínio Lógico Matemático','Contabilidade Geral','Estatística'];
+let running=false,paused=false,finished=false,total=0,limit=16200,last=0,active=null,order=[],key={},draft='',finalText='',records={},area={},idle=0,pauseTime=0,interval;
+const fmt=s=>[Math.floor(s/3600),Math.floor(s%3600/60),Math.floor(s%60)].map(v=>String(v).padStart(2,'0')).join(':');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function tick(){if(!running||finished)return;const now=Date.now(),delta=Math.max(0,(now-last)/1000);last=now;if(paused){pauseTime+=delta;return}const dt=Math.min(delta,limit-total);total+=dt;if(active){area[active.area]=(area[active.area]||0)+dt}else idle+=dt;$('elapsed').textContent=fmt(total);$('remaining').textContent=fmt(limit-total);if(active)$('question-time').textContent='Tempo nesta abertura: '+fmt(total-active.start);stats();if(total>=limit)finish(true)}
+function stats(){const rs=Object.values(records),answered=rs.filter(r=>r.answer).length,skipped=rs.filter(r=>r.skipped&&!r.answer).length;const qt=rs.reduce((a,r)=>a+r.time,0)+(active?.kind==='question'?total-active.start:0);$('stats').textContent=`Respondidas: ${answered}/60 · Puladas: ${skipped} · Restantes: ${60-answered} · Tempo médio por questão visitada: ${fmt(rs.length?qt/rs.length:0)}\n`+Object.entries(area).map(([a,t])=>a+': '+fmt(t)).join(' · ')}
+function closeActive(){tick();if(!active)return;const a=active;if(a.kind==='question'){const r=records[a.n];r.time+=total-a.start;if(a.review)r.reviewTime+=total-a.start;if(a.selection!=null)r.afterSelection+=total-a.selection;r.skipped=!r.answer;paint(a.n);$('question-dialog').close()}else{if(a.kind==='draft')draft=$('essay').value;else finalText=$('essay').value;$('essay-dialog').close()}order.push({activity:a.kind==='question'?'Questão '+a.n:a.area,event:'encerramento',time:total});active=null;stats()}
+function paint(n){const b=$('q-'+n),r=records[n];b.classList.toggle('answered',!!r?.answer);b.classList.toggle('skipped',!!r?.skipped&&!r?.answer);b.classList.remove('active')}
+function table(headers,rows){return '<div class="table-scroll"><table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+function figure(n){if(n===37){const names=['José','João','Antônio','Francisca','Antônia','Adriana','Juliana'],v=[54529,84113,76348,725642,592815,567968,564706];return '<h3>Planilha 1</h3>'+table(['','A','B'],names.map((x,i)=>[i+1,x,v[i]]))+'<h3>Planilha 2</h3>'+table(names,[v])}if(n===54)return table(['Ocorrências observadas'],[['5 · 7 · 3 · 0 · 2 · 1 · 7 · 8 · 3']]);if(n===59)return table(['Estrato','Tamanho populacional','Desvio padrão'],[['I','50.000',5],['II','80.000',4],['III','120.000',3],['IV','160.000',2],['V','190.000',1],['Total','600.000','—']]);if(n===55){const points='30,68 60,58 90,46 120,52 150,57 180,96 210,126 240,127 270,143 300,156 330,143 360,122 390,94 420,36 450,106 480,147 510,137 540,158';return '<svg class="chart" viewBox="0 0 580 200" role="img" aria-label="Recriação visual do gráfico da taxa de crime em Pernambuco, 2004 a 2021; pico de 57 em 2017 e mínimo de 34 em 2021"><path d="M25 20V165H555" fill="none" stroke="#6c7e96"/><polyline points="'+points+'" fill="none" stroke="#245eb0" stroke-width="2"/>'+Array.from({length:18},(_,i)=>'<text x="'+(30+i*30)+'" y="185" text-anchor="middle" font-size="8">'+(2004+i)+'</text>').join('')+'<text x="412" y="25" font-size="11">57</text><text x="537" y="151" font-size="11">34</text></svg><p class="muted">Recriação visual da figura da prova. Fonte indicada no original: www.sds.pe.gov.br.</p>'}return ''}
+function openQuestion(n){if(!running||paused||finished||active)return;tick();const q=Q[n];if(!q)return;const r=records[n]||={time:0,visits:0,reviewTime:0,changes:0,afterSelection:0,answer:null,confidence:null,firstChoice:null};r.visits++;active={kind:'question',n,start:total,area:q.subject,review:!!r.answer,selection:null,pending:null};order.push({activity:'Questão '+n,event:'abertura',time:total});$('q-'+n).classList.add('active');$('question-title').textContent='Questão '+n+' · '+q.subject;$('context').textContent='';if(q.context){const d=document.createElement('details');d.open=true;const summary=document.createElement('summary');summary.textContent='Texto de apoio';const p=document.createElement('div');p.className='reading support';p.textContent=q.context;d.append(summary,p);$('context').append(d)}$('prompt').textContent=q.prompt;$('figure').innerHTML=figure(n);$('alternatives').textContent='';q.choices.forEach((v,i)=>{const b=document.createElement('button');b.className='alternative'+(r.answer===String.fromCharCode(65+i)?' selected':'');b.textContent=String.fromCharCode(65+i)+') '+v;b.onclick=()=>{tick();active.pending=String.fromCharCode(65+i);if(r.firstChoice===null)r.firstChoice=total-active.start;active.selection=total;$('confidence').hidden=false;$('saved').textContent='Escolha sua confiança para salvar a alternativa.';[...$('alternatives').children].forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};$('alternatives').append(b)});$('confidence').hidden=true;$('saved').textContent=r.answer?'Resposta salva: '+r.answer+' · confiança '+r.confidence+'/5':'';$('question-dialog').showModal()}
+for(let n=1;n<=20;n++){const b=document.createElement('button');b.textContent=n;b.disabled=true;b.className='q-button';b.title='Caderno de Noções de Direito ainda não fornecido';$('p1').append(b)}subjects.forEach(subject=>{const h=document.createElement('h3');h.textContent=subject;const div=document.createElement('div');div.className='question-panel';Object.values(Q).filter(q=>q.subject===subject).forEach(q=>{const b=document.createElement('button');b.id='q-'+q.number;b.className='q-button';b.textContent=q.number;b.onclick=()=>openQuestion(q.number);div.append(b)});$('p2').append(h,div)});
+for(let c=1;c<=5;c++){const b=document.createElement('button');b.textContent=c;b.onclick=()=>{if(!active?.pending)return;tick();const r=records[active.n];if(r.answer&&r.answer!==active.pending)r.changes++;r.answer=active.pending;r.confidence=c;r.skipped=false;paint(active.n);$('q-'+active.n).classList.add('active');$('saved').textContent='Resposta '+r.answer+' salva · confiança '+c+'/5. Encerre a questão para continuar.';$('confidence').hidden=true;stats()};$('confidence-buttons').append(b)}
+$('close-question').onclick=closeActive;$('question-dialog').addEventListener('cancel',e=>{e.preventDefault();closeActive()});
+function openEssay(kind){if(!running||paused||finished||active)return;tick();const name=kind==='draft'?'Discursiva — rascunho':'Discursiva — versão final';active={kind,start:total,area:name};order.push({activity:name,event:'abertura',time:total});$('essay-title').textContent=name;$('discursive-text').textContent=window.PCPE_DISCURSIVE;$('essay').value=kind==='draft'?draft:finalText;$('essay-dialog').showModal()}
+$('draft').onclick=()=>openEssay('draft');$('final-text').onclick=()=>openEssay('final');$('close-essay').onclick=closeActive;$('essay-dialog').addEventListener('cancel',e=>{e.preventDefault();closeActive()});$('essay').oninput=()=>{$('essay-count').textContent=$('essay').value.split(/\n/).length+' linhas explícitas · '+($('essay').value.trim().match(/\S+/g)||[]).length+' palavras'};
+$('start').onclick=()=>{limit=Number($('duration').value)*60;running=true;last=Date.now();$('setup').hidden=true;$('exam').hidden=false;interval=setInterval(tick,500);stats()};$('pause').onclick=()=>{tick();paused=!paused;$('pause').textContent=paused?'Retomar':'Pausar';$('paused').hidden=!paused;$('workspace').hidden=paused;if(active){const d=active.kind==='question'?$('question-dialog'):$('essay-dialog');if(paused)d.close();else d.showModal()}};
+function resultText(){let out='PC PE — Agente | Relatório de simulação\nTempo de prova: '+fmt(total)+'\nPausas: '+fmt(pauseTime)+'\nSem atividade aberta: '+fmt(idle)+'\n\nTEMPO POR ÁREA\n'+Object.entries(area).map(([a,t])=>a+': '+fmt(t)).join('\n');out+='\n\nQUESTÕES\nNº | Resposta | Confiança | Tempo total | Primeira escolha | Após seleção | Reaberturas | Tempo revisão | Trocas\n';Object.entries(records).forEach(([n,r])=>{out+=[n,r.answer||'em branco',r.confidence||'—',fmt(r.time),r.firstChoice===null?'—':fmt(r.firstChoice),fmt(r.afterSelection),Math.max(0,r.visits-1),fmt(r.reviewTime),r.changes].join(' | ')+'\n'});out+='\nCORREÇÃO\n';for(const [name,nums] of [['P1',Array.from({length:20},(_,i)=>i+1)],['P2',Array.from({length:40},(_,i)=>i+21)],...subjects.map(s=>[s,Object.values(Q).filter(q=>q.subject===s).map(q=>q.number)])]){const available=nums.filter(n=>key[n]);if(!available.length){out+=name+': sem gabarito\n';continue}let correct=0,wrong=0,blank=0;available.forEach(n=>{const a=records[n]?.answer;if(!a)blank++;else if(a===key[n])correct++;else wrong++});out+=name+': '+correct+'/'+available.length+' acertos ('+Math.round(correct/available.length*100)+'%), '+wrong+' erros, '+blank+' em branco. Cobertura: '+available.length+'/'+nums.length+' questões.\n'}for(const n of Object.keys(key))out+='Q'+n+': '+(records[n]?.answer||'em branco')+' → '+key[n]+(records[n]?.answer===key[n]?' ✓':' ✗')+'\n';out+='\nORDEM DE RESOLUÇÃO\n'+order.map(o=>fmt(o.time)+' | '+o.activity+' | '+o.event).join('\n');out+='\n\nDISCURSIVA — RASCUNHO\n'+draft+'\n\nDISCURSIVA — VERSÃO FINAL\n'+finalText+'\n\nRedação sem correção automática. Questões 1–20 não fornecidas. Percentuais calculados apenas sobre gabaritos informados.';return out}
+function finish(auto=false){if(finished)return;if(!auto&&!confirm('Finalizar a prova e gerar o relatório?'))return;running=false;if(active)closeActive();finished=true;clearInterval(interval);$('exam').hidden=true;$('results').hidden=false;$('summary').textContent='Tempo utilizado: '+fmt(total)+' · Respondidas: '+Object.values(records).filter(r=>r.answer).length+'/60. Material disponível: 40 questões objetivas.';$('feedback').textContent=resultText();window.scrollTo(0,0)}
+$('finish').onclick=()=>finish(false);$('correct').onclick=()=>{const lines=$('key').value.trim().split(/\n/),next={};for(const line of lines){const m=line.trim().toUpperCase().match(/^(\d{1,2})\s*[:;,.\-]?\s+([A-E])$/);if(!m||Number(m[1])<1||Number(m[1])>60||next[m[1]]){$('key-status').textContent='Confira o gabarito: use uma questão única por linha, no formato 21 B, entre 1 e 60.';return}next[Number(m[1])]=m[2]}key=next;$('key-status').textContent=Object.keys(key).length+' questões com gabarito aplicado.';$('feedback').textContent=resultText()};$('download').onclick=()=>{const url=URL.createObjectURL(new Blob([resultText()],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='pcpe-relatorio.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('again').onclick=()=>location.reload();window.addEventListener('beforeunload',e=>{if(running&&!finished){e.preventDefault();e.returnValue=''}});
 })();
+
