@@ -13,42 +13,6 @@
 
 
     <style>
-        /* Estilos para feedback de erro */
-        .error-message {
-            color: #D8000C;
-            background-color: #FFD2D2;
-            border: 1px solid #D8000C;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 8px;
-            text-align: center;
-            display: none; /* Começa oculto */
-        }
-        /* Estilos para o container de autenticação */
-        .auth-container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .auth-toggle {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .auth-toggle a {
-            color: #3498db;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        #user-info {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        #logout-button {
-            background-color: #e74c3c;
-        }
         /* Estilos para o novo modal genérico */
         .modal-footer {
             text-align: right; 
@@ -70,58 +34,8 @@
     </header>
 
  <main>
-        <!-- Seção de Autenticação: Contém os formulários de Login e Cadastro -->
-        <section id="auth-section">
-            <div class="auth-container">
-                <!-- Formulário de Login (inicialmente visível) -->
-                <div id="login-form">
-                    <h2>Acesso Restrito</h2>
-                    <div class="setup-group">
-                        <label for="login-email">Email:</label>
-                        <input type="email" id="login-email" placeholder="Digite seu email" required>
-                    </div>
-                    <div class="setup-group">
-                        <label for="login-pass">Senha:</label>
-                        <input type="password" id="login-pass" placeholder="Digite sua senha" required>
-                    </div>
-                    <button id="login-button" class="primary-button">Entrar</button>
-                    <div class="auth-toggle">
-                        <p>Não tem uma conta? <a id="show-signup">Cadastre-se</a></p>
-                    </div>
-                </div>
-
-                <!-- Formulário de Cadastro (inicialmente oculto) -->
-                <div id="signup-form" class="hidden-section">
-                    <h2>Crie sua Conta</h2>
-                    <div class="setup-group">
-                        <label for="signup-email">Email:</label>
-                        <input type="email" id="signup-email" placeholder="Digite seu email" required>
-                    </div>
-                    <div class="setup-group">
-                        <label for="signup-pass">Senha:</label>
-                        <input type="password" id="signup-pass" placeholder="Crie uma senha" required>
-                    </div>
-                    <button id="signup-button" class="primary-button">Cadastrar</button>
-                    <div class="auth-toggle">
-                        <p>Já tem uma conta? <a id="show-login">Faça Login</a></p>
-                    </div>
-                </div>
-                <!-- Mensagem de Erro -->
-                <div id="error-message" class="error-message"></div>
-            </div>
-        </section>
-
-        <!-- Conteúdo Principal do App (inicialmente oculto) -->
-        <div id="app-content" class="hidden-section">
-            <div id="user-info">
-                <p>Logado como: <strong id="user-email-display"></strong></p>
-                <button id="logout-button" class="primary-button small-button">Sair</button>
-            </div>
-
-
-
-
-        <section id="initial-setup" class="hidden-section">
+        <div id="app-content">
+        <section id="initial-setup" class="active-section">
             <h2>Configuração da Simulação</h2>
             <div class="setup-container">
                 <div class="setup-group">
@@ -447,124 +361,6 @@
             </div>
         </div>
     </div>
-
-
-    <!-- Script de Integração com Firebase -->
-    <script type="module">
-      // Importa as funções necessárias dos SDKs do Firebase
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { 
-        getAuth, 
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        onAuthStateChanged,
-        signOut
-      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyBkFQWm0cluT6qfrrv1cyXxdpAKV9NXInk",
-        authDomain: "enemetria-site-d550a.firebaseapp.com",
-        projectId: "enemetria-site-d550a",
-        storageBucket: "enemetria-site-d550a.appspot.com",
-        messagingSenderId: "278866096830",
-        appId: "1:278866096830:web:a14395821b88670910e4ef",
-        measurementId: "G-FRRPDHKKSR"
-      };
-
-      // Inicializa o Firebase
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-
-      // --- REFERÊNCIAS AOS ELEMENTOS DO DOM ---
-      const authSection = document.getElementById('auth-section');
-      const appContent = document.getElementById('app-content');
-      const loginForm = document.getElementById('login-form');
-      const signupForm = document.getElementById('signup-form');
-      const showSignupLink = document.getElementById('show-signup');
-      const showLoginLink = document.getElementById('show-login');
-      const loginButton = document.getElementById('login-button');
-      const signupButton = document.getElementById('signup-button');
-      const logoutButton = document.getElementById('logout-button');
-      const userEmailDisplay = document.getElementById('user-email-display');
-      const errorMessageDiv = document.getElementById('error-message');
-
-      // --- FUNÇÕES AUXILIARES ---
-      function showErrorMessage(message) {
-        errorMessageDiv.textContent = message;
-        errorMessageDiv.style.display = 'block';
-      }
-      function clearErrorMessage() {
-        errorMessageDiv.textContent = '';
-        errorMessageDiv.style.display = 'none';
-      }
-      showSignupLink.addEventListener('click', () => {
-        loginForm.classList.add('hidden-section');
-        signupForm.classList.remove('hidden-section');
-        clearErrorMessage();
-      });
-      showLoginLink.addEventListener('click', () => {
-        signupForm.classList.add('hidden-section');
-        loginForm.classList.remove('hidden-section');
-        clearErrorMessage();
-      });
-
-      // --- LÓGICA DE AUTENTICAÇÃO ---
-      signupButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        clearErrorMessage();
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-pass').value;
-        if (!email || !password) {
-            showErrorMessage("Por favor, preencha todos os campos.");
-            return;
-        }
-        createUserWithEmailAndPassword(auth, email, password)
-          .catch((error) => {
-            let friendlyMessage = "Ocorreu um erro ao tentar cadastrar.";
-            if (error.code === 'auth/email-already-in-use') friendlyMessage = "Este email já está em uso.";
-            else if (error.code === 'auth/weak-password') friendlyMessage = "A senha é muito fraca. Use pelo menos 6 caracteres.";
-            else if (error.code === 'auth/invalid-email') friendlyMessage = "O formato do email é inválido.";
-            showErrorMessage(friendlyMessage);
-          });
-      });
-      loginButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        clearErrorMessage();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-pass').value;
-        if (!email || !password) {
-            showErrorMessage("Por favor, preencha todos os campos.");
-            return;
-        }
-        signInWithEmailAndPassword(auth, email, password)
-          .catch((error) => {
-            let friendlyMessage = "Email ou senha incorretos.";
-            showErrorMessage(friendlyMessage);
-          });
-      });
-      logoutButton.addEventListener('click', () => {
-        signOut(auth).catch((error) => {
-            showErrorMessage("Ocorreu um erro ao tentar sair.");
-        });
-      });
-      
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          authSection.classList.add('hidden-section');
-          appContent.classList.remove('hidden-section');
-          userEmailDisplay.textContent = user.email;
-           const initialSetupSection = document.getElementById('initial-setup');
-           initialSetupSection.classList.remove('hidden-section');
-           initialSetupSection.classList.add('active-section');
-        } else {
-          authSection.classList.remove('hidden-section');
-          appContent.classList.add('hidden-section');
-          signupForm.classList.add('hidden-section');
-          loginForm.classList.remove('hidden-section');
-          clearErrorMessage();
-        }
-      });
-    </script>
 
 
     <script type="module" src="script.js"></script>

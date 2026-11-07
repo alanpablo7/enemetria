@@ -1,6 +1,5 @@
 //Inicio do Bloco 01________________________________________________
 
- // --- CORREÇÃO: importar do CDN, não de "firebase/auth" ---
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -186,11 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
         loadHistoryFromLocalStorage();
         hideAllSections();
 
-        const loginSection = document.getElementById('login-section');
-        // Alterado: A tela de login é a inicial, não mais a de setup
-        if (loginSection) {
-            loginSection.classList.remove('hidden-section');
-            loginSection.classList.add('active-section');
+        if (sections.initialSetup) {
+            sections.initialSetup.classList.remove('hidden-section');
+            sections.initialSetup.classList.add('active-section');
         }
 
         if (controls.timerToggle && controls.timerToggle.parentElement) {
@@ -267,13 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideAllSections() {
-        // Adicionada a seção de login para ser ocultada
-        const loginSect = document.getElementById('login-section');
-        if (loginSect) {
-            loginSect.classList.add('hidden-section');
-            loginSect.classList.remove('active-section');
-        }
-        
         Object.values(sections).forEach(section => {
             if (section) {
                 section.classList.add('hidden-section');
@@ -283,11 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sections.countdownTimer) sections.countdownTimer.classList.add('hidden-section');
     }
 
-    // O restante do seu código `script.js` continua aqui sem alterações...
-    // (Funções como handleStartSetup, handleStartExam, formatTime, etc.)
-    // Nenhuma outra alteração é necessária no resto do arquivo para a funcionalidade de login.
-    
-    //... (COLE O RESTO DO SEU CÓDIGO JS ORIGINAL AQUI, COMEÇANDO DA FUNÇÃO `toggleMainTimer`)
     function toggleMainTimer() {
         if (!displays.mainTimerValueContainer || !controls.timerToggle) return;
         if (displays.mainTimerValueContainer.classList.contains('hidden')) {
