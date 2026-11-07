@@ -31,6 +31,12 @@
       const seq = stamp(at);
       attempt.selections.push({sequence:seq,atSeconds:at,answer}); attempt.pendingAnswer = answer;
     }
+    function cancelSelection(attemptId, at) {
+      const attempt = current(attemptId);
+      const seq = stamp(at);
+      attempt.selections.push({sequence:seq,atSeconds:at,answer:null,kind:'desmarcacao_provisoria'});
+      attempt.pendingAnswer = null;
+    }
     function saveAnswer(attemptId, answer, confidence, at) {
       const attempt = current(attemptId), q = questions[attempt.number];
       if (attempt.pendingAnswer !== answer || !Number.isInteger(confidence) || confidence < 1 || confidence > 5) throw new Error('Resposta sem seleção ou confiança válida.');
@@ -52,7 +58,7 @@
       activeAttempt = null;
     }
     function snapshot() { return copy({schemaVersion,examId,sessionId,timeBasis:'segundos_decorridos_de_prova_sem_pausas',lastEventSequence:sequence,questions}); }
-    return Object.freeze({sessionId,openQuestion,selectAnswer,saveAnswer,closeQuestion,snapshot});
+    return Object.freeze({sessionId,openQuestion,selectAnswer,cancelSelection,saveAnswer,closeQuestion,snapshot});
   }
   function transition(before, after, key) {
     if (!key) return {category:'sem_gabarito',delta:null};

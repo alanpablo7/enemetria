@@ -144,6 +144,15 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       button.append(badge, text);
       button.onclick = () => {
         tick(); if (!active || finished) return;
+        if (active.pending === letter) {
+          sessionTracker.cancelSelection(active.attemptId, elapsed);
+          active.pending = null; active.selection = null;
+          $('confidence').hidden = true; $('confidence-warning').hidden = true;
+          [...$('alternatives').children].forEach((b, i) => { const selected = r.answer === String.fromCharCode(65+i); b.classList.toggle('selected', selected); b.setAttribute('aria-pressed', String(selected)); });
+          $('saved').className = 'saved-status';
+          $('saved').textContent = r.answer ? 'Seleção desfeita. Resposta anteriormente salva: ' + r.answer + ' · confiança ' + r.confidence + '/5.' : 'Alternativa desmarcada. Você pode fechar a questão para pulá-la.';
+          return;
+        }
         sessionTracker.selectAnswer(active.attemptId, letter, elapsed);
         active.pending = letter;
         if (r.firstChoice === null) r.firstChoice = r.time + elapsed - active.start;
