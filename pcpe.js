@@ -272,17 +272,24 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     return text + '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática. Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
   }
 
-  function finish(auto = false) {
+  function finish(auto = false, confirmed = false) {
     if (finished || finishing) return;
     if (!auto && active?.kind === 'question' && active.pending !== null) {
       if (paused) togglePause();
       requireConfidence(); return;
     }
-    if (!auto && !confirm('Finalizar a prova e conferir seu desempenho?')) return;
+    if (!auto && !confirmed) {
+      const answered = Object.values(records).filter(r => r.answer).length;
+      $('finish-overview').textContent = answered + ' questões respondidas · ' + (60 - answered) + ' em branco.';
+      $('finish-dialog').showModal(); return;
+    }
+    if ($('finish-dialog').open) $('finish-dialog').close();
     finishing = true; tick(); closeActive({force: true}); running = false; finished = true; finishing = false;
     clearInterval(timer); $('exam').hidden = true; $('results').hidden = false; renderResults(auto); window.scrollTo(0, 0);
   }
   $('finish').onclick = () => finish();
+  $('cancel-finish').onclick = () => $('finish-dialog').close();
+  $('confirm-finish').onclick = () => finish(false, true);
   $('download').onclick = () => {
     const url = URL.createObjectURL(new Blob([report()], {type: 'text/plain;charset=utf-8'}));
     const a = document.createElement('a'); a.href = url; a.download = 'enemetria-pcpe-relatorio.txt'; a.click();
