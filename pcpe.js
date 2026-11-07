@@ -1,12 +1,13 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const questions = window.PCPE_QUESTIONS;
-  const answerKey = window.PCPE_ANSWER_KEY;
+  const exam = window.ENEMETRIA_EXAMS[document.body.dataset.examId];
+  const questions = exam.questions;
+  const answerKey = exam.answerKey;
   const records = {}, areaTimes = {}, order = [];
   let running = false, paused = false, finished = false, finishing = false;
   let elapsed = 0, limit = 16200, lastTick = 0, active = null, idle = 0, pauseTime = 0, timer;
-  let draft = '', finalText = '';
+  let draft = '', finalText = '', startedAt = null, finishedAt = null;
   const fmt = seconds => {
     seconds = Math.max(0, Math.floor(seconds));
     return [Math.floor(seconds / 3600), Math.floor(seconds % 3600 / 60), seconds % 60].map(v => String(v).padStart(2, '0')).join(':');
@@ -82,6 +83,7 @@
     if (session.kind === 'question') {
       const r = records[session.n];
       r.time += elapsed - session.start;
+      if (r.visits === 1) r.firstPassTimeSeconds = elapsed - session.start;
       if (session.review) r.reviewTime += elapsed - session.start;
       if (session.selection !== null) r.afterSelection += elapsed - session.selection;
       if (session.pending !== null) r.pendingAtTimeout = true;
@@ -108,8 +110,9 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     tick();
     if (finished) return;
     const q = questions[number];
-    const r = records[number] ||= {time: 0, visits: 0, reviewTime: 0, changes: 0, afterSelection: 0, answer: null, confidence: null, firstChoice: null};
+    const r = records[number] ||= {time: 0, visits: 0, reviewTime: 0, changes: 0, afterSelection: 0, answer: null, confidence: null, firstChoice: null, firstPassTimeSeconds: null, answeredRevisits: 0};
     r.visits++;
+    if (r.answer) r.answeredRevisits++;
     active = {kind: 'question', n: number, start: elapsed, area: q.subject, review: !!r.answer, selection: null, pending: null};
     order.push({activity: 'Questão ' + number, event: 'abertura', time: elapsed});
     paint(number);
@@ -201,7 +204,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     const name = kind === 'draft' ? 'Discursiva — rascunho' : 'Discursiva — versão final';
     active = {kind, start: elapsed, area: name}; order.push({activity: name, event: 'abertura', time: elapsed});
     $('essay-title').textContent = name;
-    renderText($('discursive-text'), window.PCPE_DISCURSIVE.replace(/\r/g, '').split(/\n\s*\n/).map(p => p.replace(/\n/g, ' ')).join('\n\n'));
+    renderText($('discursive-text'), exam.discursive.replace(/\r/g, '').split(/\n\s*\n/).map(p => p.replace(/\n/g, ' ')).join('\n\n'));
     $('essay').value = kind === 'draft' ? draft : finalText;
     updateEssayCount(); $('essay-dialog').showModal();
   }
@@ -220,7 +223,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
   }
   $('pause').onclick = togglePause; $('pause-question').onclick = togglePause; $('pause-essay').onclick = togglePause;
   $('start').onclick = () => {
-    limit = Number($('duration').value) * 60; running = true; lastTick = Date.now();
+    limit = Number($('duration').value) * 60; running = true; lastTick = Date.now(); startedAt = new Date().toISOString();
     $('setup').hidden = true; $('exam').hidden = false; renderStats();
     $('remaining').textContent = fmt(limit); timer = setInterval(tick, 500); window.scrollTo(0, 0);
   };
@@ -256,20 +259,21 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
 
   function report() {
     const overall = score(questionNumbers());
-    let text = 'ENEMetria — PC PE / Agente de Polícia\nCEBRASPE — Edital 2023 — Aplicação: 25/02/2024\nCorreção: GABARITO OFICIAL PRELIMINAR fornecido\nCadernos: 954_PC_PE_CB1_01 (P1) / 954_PC_PE_001_01 (P2)\n\n';
+    let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\nBANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
     text += 'Acertos: ' + overall.correct + '/60 (' + overall.percent + '%)\nErros: ' + overall.wrong + '\nEm branco: ' + overall.blank + '\nTempo de prova: ' + fmt(elapsed) + '\nPausas: ' + fmt(pauseTime) + '\nSem atividade aberta: ' + fmt(idle) + '\n\nDESEMPENHO POR BLOCO E DISCIPLINA\n';
     for (const [label, nums] of [['P1', questionNumbers('P1')], ['P2', questionNumbers('P2')], ...subjects.map(s => [s, Object.values(questions).filter(q => q.subject === s).map(q => q.number)])]) {
       const s = score(nums); text += label + ': ' + s.correct + '/' + s.total + ' acertos (' + s.percent + '%), ' + s.wrong + ' erros, ' + s.blank + ' em branco.\n';
     }
     text += '\nTEMPO POR ÁREA\n' + Object.entries(areaTimes).map(([name, time]) => name + ': ' + fmt(time)).join('\n');
-    text += '\n\nQUESTÕES\nNº | Resposta | Gabarito preliminar | Resultado | Confiança | Tempo total | Até primeira escolha | Após última seleção | Reaberturas | Tempo de revisão | Trocas\n';
+    text += '\n\nQUESTÕES\nNº | Resposta | Gabarito preliminar | Resultado | Confiança | Tempo total | Até primeira escolha | Após seleção (acumulado) | Reaberturas | Tempo de revisão | Trocas\n';
     for (const n of questionNumbers()) {
       const r = records[n];
       text += [n, r?.answer || 'em branco', answerKey[n], !r?.answer ? 'em branco' : r.answer === answerKey[n] ? 'acerto' : 'erro', r?.confidence || '—', fmt(r?.time || 0), r?.firstChoice == null ? '—' : fmt(r.firstChoice), fmt(r?.afterSelection || 0), Math.max(0, (r?.visits || 0) - 1), fmt(r?.reviewTime || 0), r?.changes || 0].join(' | ') + '\n';
       if (r?.pendingAtTimeout) text += '  Tempo encerrado com nova seleção sem confiança: preservada apenas a resposta previamente salva, se existente.\n';
     }
     text += '\nORDEM DE RESOLUÇÃO\n' + order.map(o => fmt(o.time) + ' | ' + o.activity + ' | ' + o.event).join('\n');
-    return text + '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática. Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
+    const performanceReport = text + '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática. Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
+    return performanceReport + window.EnemetriaReports.buildAppendix(exam, {records, order});
   }
 
   function finish(auto = false, confirmed = false) {
@@ -284,7 +288,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       $('finish-dialog').showModal(); return;
     }
     if ($('finish-dialog').open) $('finish-dialog').close();
-    finishing = true; tick(); closeActive({force: true}); running = false; finished = true; finishing = false;
+    finishing = true; tick(); closeActive({force: true}); running = false; finished = true; finishing = false; finishedAt = new Date().toISOString();
     clearInterval(timer); $('exam').hidden = true; $('results').hidden = false; renderResults(auto); window.scrollTo(0, 0);
   }
   $('finish').onclick = () => finish();
@@ -292,7 +296,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
   $('confirm-finish').onclick = () => finish(false, true);
   $('download').onclick = () => {
     const url = URL.createObjectURL(new Blob([report()], {type: 'text/plain;charset=utf-8'}));
-    const a = document.createElement('a'); a.href = url; a.download = 'enemetria-pcpe-relatorio.txt'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = window.EnemetriaReports.fileName(exam); a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   $('again').onclick = () => location.reload();
