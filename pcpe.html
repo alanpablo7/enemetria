@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PC PE — ENEMetria</title><link rel="stylesheet" href="concursos.css"></head>
+<body>
+<header class="top"><a class="brand" href="index.html">ENEMetria <span>Simule. Meça. Evolua.</span></a></header>
+<main class="shell">
+  <a class="back" href="index.html">← Escolher outra prova</a>
+  <div class="hero"><p class="eyebrow">CONCURSO PÚBLICO · AGENTE DE POLÍCIA</p><h1>Simulado PC PE</h1><p>Use sua própria prova para praticar, acompanhar o tempo e analisar seu desempenho por bloco.</p></div>
+  <section id="setup" class="panel">
+    <h2>Prepare sua simulação</h2>
+    <div class="facts"><span class="fact">60 questões objetivas</span><span class="fact">P1 · 20 questões</span><span class="fact">P2 · 40 questões</span><span class="fact">Redação · até 30 linhas</span></div>
+    <p class="muted">P1: Noções de Direito. P2: Conhecimentos Específicos. A redação deve abordar um tema de atualidade ligado à segurança pública.</p>
+    <p class="notice">Este é um modelo de treino com a estrutura informada. A prova e o gabarito devem ser fornecidos por você; confira as regras no edital aplicável.</p>
+    <p class="muted">Mantenha esta página aberta durante a prova: as respostas não são salvas ao recarregar ou fechar a página. Ao terminar, baixe o relatório.</p>
+    <label for="duration">Duração da prova</label><select id="duration"><option value="270">4h30min</option><option value="300">5 horas</option></select>
+    <label for="pdf">Prova em PDF (opcional)</label><input id="pdf" type="file" accept="application/pdf,.pdf"><p class="muted">Você também pode usar uma prova impressa ou aberta em outro dispositivo. O PDF fica no seu navegador.</p>
+    <label for="theme">Tema da redação (opcional)</label><input id="theme" type="text" maxlength="220" placeholder="Digite o tema da sua prova">
+    <div class="actions"><button id="start">Iniciar simulação</button></div>
+  </section>
+  <section id="exam" class="hidden">
+    <div class="test-head"><div><span class="eyebrow">TEMPO RESTANTE</span><div id="timer" class="timer" aria-live="off">04:30:00</div></div><div class="actions"><button id="pause" class="secondary">Pausar</button><button id="finish">Finalizar simulação</button></div></div>
+    <p id="pause-notice" class="notice hidden">Simulação pausada. Retome para continuar.</p>
+    <div id="exam-body">
+      <section id="pdf-section" class="panel hidden"><h2>Seu caderno de questões</h2><p class="muted">Se o PDF não aparecer neste navegador, abra-o separadamente.</p><iframe id="pdf-view" class="pdf-frame" title="Prova em PDF"></iframe></section>
+      <section class="panel"><h2>P1 · Noções de Direito</h2><p class="progress" id="progress-p1"></p><div id="p1" class="grid"></div></section>
+      <section class="panel"><h2>P2 · Conhecimentos Específicos</h2><p class="progress" id="progress-p2"></p><div id="p2" class="grid"></div></section>
+      <section class="panel"><h2>Prova discursiva</h2><p id="theme-display" class="muted"></p><p class="muted">Escreva sobre um tema de atualidade relacionado à segurança pública. Limite de referência: 30 linhas; confira as linhas na versão final, pois a quebra varia conforme a tela.</p><label for="essay">Sua redação</label><textarea id="essay" rows="18" placeholder="Escreva sua redação aqui..."></textarea><p id="essay-count" class="progress"></p></section>
+    </div>
+  </section>
+  <section id="results" class="hidden">
+    <section class="panel"><h2>Simulação finalizada</h2><p id="time-used" class="muted"></p><div id="completion" class="results-grid"></div><p class="notice">A redação fica disponível para revisão e não recebe nota automática. A avaliação exige os critérios e a correção de uma pessoa habilitada.</p></section>
+    <section class="panel"><h2>Corrigir questões objetivas</h2><p class="muted">Informe o gabarito da sua prova na ordem das questões: 60 letras de A a E. Espaços, vírgulas e quebras de linha são aceitos.</p><label for="key">Gabarito das 60 questões</label><textarea id="key" rows="4" placeholder="Ex.: A B C D E ..."></textarea><p id="key-error" class="alert" role="alert"></p><button id="correct">Calcular desempenho</button></section>
+    <section id="feedback" class="panel hidden" aria-live="polite"></section>
+    <section class="panel"><h2>Redação</h2><p id="essay-result" class="report"></p><div class="actions"><button id="download" class="secondary">Baixar relatório em TXT</button><button id="restart" class="danger">Iniciar outra simulação</button></div></section>
+  </section>
+</main><footer>ENEMetria · Simule. Meça. Evolua.</footer>
+<script src="pcpe.js"></script></body></html>
