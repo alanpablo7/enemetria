@@ -48,5 +48,5 @@ const interrupted=api.create(exam.id,'pending-review-test');let a=interrupted.op
 
 const report=context.window.EnemetriaReports.buildTraceSection(exam,{sessionTrace:trace,elapsedSeconds:time,pauseSeconds:0,idleSeconds:0});
 assert.match(report,/Saldo líquido de acertos após revisões: 0/);assert.match(report,/Decisões de pular: 2/);
-const payload=JSON.parse(report.split('SESSAO_ESTRUTURADA_JSON_INICIO\n')[1].split('\nSESSAO_ESTRUTURADA_JSON_FIM')[0]);assert.equal(payload.rawTrace.questions[1].attempts.length,5);assert.equal(payload.summary.netReview.correctAtEnd,4);
+const payload=JSON.parse(report.split('SESSAO_ESTRUTURADA_JSON_INICIO\n')[1].split('\nSESSAO_ESTRUTURADA_JSON_FIM')[0]);assert.equal(payload.rawTrace.questions[1].attempts.length,5);assert.equal(payload.summary.netReview.correctAtEnd,4);assert.equal(payload.answerKey[1],exam.answerKey[1]);assert.equal(payload.questionIndex[1].block,'P1');
 console.log('OK: trocas iniciais separadas de revisões, loops sem ganho duplicado, confiança sem troca, pulos repetidos, retornos resolvidos, fechamento forçado e JSON.');
