@@ -1,2 +1,2 @@
-// Preencher somente após publicar e testar o serviço de recebimento.
-window.ENEMETRIA_REPORT_DELIVERY = Object.freeze({endpoint: ''});
+// O destinatario e as credenciais ficam somente no servidor.
+window.ENEMETRIA_REPORT_DELIVERY = Object.freeze({endpoint: 'https://relatorios.enemetria.com.br/reports'});
