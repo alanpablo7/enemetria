@@ -44,12 +44,14 @@ def initialize():
 
 
 def smtp_connect():
-    server = smtplib.SMTP('smtp.gmail.com', 587, timeout=20)
+    server = smtplib.SMTP_SSL(
+        'smtp.gmail.com', 465, local_hostname='enemetria.com.br',
+        timeout=20, context=ssl.create_default_context())
     try:
         server.ehlo()
-        server.starttls(context=ssl.create_default_context())
-        server.ehlo()
-        server.login(os.environ['SMTP_USER'], os.environ['SMTP_PASSWORD'])
+        server.user = os.environ['SMTP_USER']
+        server.password = os.environ['SMTP_PASSWORD']
+        server.auth('LOGIN', server.auth_login, initial_response_ok=False)
         return server
     except Exception:
         server.close()
