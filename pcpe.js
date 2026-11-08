@@ -235,7 +235,10 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     }
   }
   $('pause').onclick = togglePause; $('pause-question').onclick = togglePause; $('pause-essay').onclick = togglePause;
+  let participantEmail = '';
   $('start').onclick = () => {
+    if (($('participant-email').value || '').trim() && !$('participant-email').reportValidity()) return;
+    participantEmail = ($('participant-email').value || '').trim();
     limit = Number($('duration').value) * 60; running = true; lastTick = Date.now(); startedAt = new Date().toISOString();
     $('setup').hidden = true; $('exam').hidden = false; renderStats();
     $('remaining').textContent = fmt(limit); timer = setInterval(tick, 500); window.scrollTo(0, 0);
@@ -281,6 +284,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
   function report() {
     const overall = score(questionNumbers());
     let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\nBANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate + '\nSESSÃO_ID: ' + sessionTracker.sessionId + '\nVERSÃO_DADOS_SESSÃO: ' + window.EnemetriaSessionTracker.schemaVersion + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
+    text += 'CONTATO PARA DEVOLUTIVA: ' + (participantEmail || 'Não informado') + '\n\n';
     text += 'Acertos: ' + overall.correct + '/60 (' + overall.percent + '%)\nErros: ' + overall.wrong + '\nEm branco: ' + overall.blank + '\nTempo de prova: ' + fmt(elapsed) + '\nPausas: ' + fmt(pauseTime) + '\nSem atividade aberta: ' + fmt(idle) + '\n\nDESEMPENHO POR BLOCO E DISCIPLINA\n';
     for (const [label, nums] of [['P1', questionNumbers('P1')], ['P2', questionNumbers('P2')], ...subjects.map(s => [s, Object.values(questions).filter(q => q.subject === s).map(q => q.number)])]) {
       const s = score(nums); text += label + ': ' + s.correct + '/' + s.total + ' acertos (' + s.percent + '%), ' + s.wrong + ' erros, ' + s.blank + ' em branco.\n';
@@ -312,7 +316,8 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     }
     if ($('finish-dialog').open) $('finish-dialog').close();
     finishing = true; tick(); closeActive({force: true, reason: auto ? 'tempo_esgotado' : 'fim_prova'}); running = false; finished = true; finishing = false; finishedAt = new Date().toISOString();
-    clearInterval(timer); $('exam').hidden = true; $('results').hidden = false; renderResults(auto); window.scrollTo(0, 0);
+    clearInterval(timer); $('exam').hidden = true; $('results').hidden = false; renderResults(auto); $('result-email').value = participantEmail; window.scrollTo(0, 0);
+    if (deliveryEndpoint && participantEmail && $('delivery-consent').checked) sendReport();
   }
   $('finish').onclick = () => finish();
   $('cancel-finish').onclick = () => $('finish-dialog').close();
@@ -322,6 +327,37 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     const a = document.createElement('a'); a.href = url; a.download = window.EnemetriaReports.fileName(exam); a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const deliveryEndpoint = window.ENEMETRIA_REPORT_DELIVERY?.endpoint || '';
+  if (deliveryEndpoint) {
+    $('send-report').disabled = false;
+    $('method-delivery').textContent = 'Ao finalizar, autorize o envio do relatório para análise com apoio de IA e revisão da equipe. Você receberá o feedback no seu e-mail em até 48 horas após a confirmação do envio.';
+    $('delivery-description').textContent = 'Envie seu relatório para análise com apoio de IA e revisão da equipe. A devolutiva chega em até 48 horas após a confirmação do envio.';
+  }
+  let sendingReport = false, reportSent = false;
+  async function sendReport() {
+    if (!finished || !deliveryEndpoint || sendingReport || reportSent) return;
+    const emailInput = $('result-email');
+    if (!(emailInput.value || '').trim() || !emailInput.reportValidity()) {
+      $('delivery-status').textContent = 'Informe um e-mail válido para receber sua avaliação.'; emailInput.focus(); return;
+    }
+    if (!$('delivery-consent').checked) {
+      $('delivery-status').textContent = 'Autorize o envio do relatório para solicitar sua avaliação.'; return;
+    }
+    participantEmail = emailInput.value.trim(); sendingReport = true; $('send-report').disabled = true;
+    $('delivery-status').textContent = 'Enviando relatório… Aguarde a confirmação antes de sair.';
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(deliveryEndpoint, {method: 'POST', headers: {'Content-Type': 'application/json'}, signal: controller.signal,
+        body: JSON.stringify({sessionId: sessionTracker.sessionId, examId: exam.id, email: participantEmail, consent: true, report: report()})});
+      const receipt = await response.json();
+      if (!response.ok || receipt.accepted !== true) throw new Error('not accepted');
+      reportSent = true; $('send-report').textContent = 'Relatório enviado';
+      $('delivery-status').textContent = 'Relatório enviado para análise. Você receberá a avaliação em até 48 horas no e-mail informado.';
+    } catch {
+      $('delivery-status').textContent = 'Não foi possível confirmar o envio. Tente novamente ou baixe o relatório para não perder seus dados.';
+    } finally { clearTimeout(timeout); sendingReport = false; $('send-report').disabled = reportSent; }
+  }
+  $('send-report').onclick = sendReport;
   $('again').onclick = () => location.reload();
   window.addEventListener('beforeunload', event => { if (running && !finished) { event.preventDefault(); event.returnValue = ''; } });
 })();
