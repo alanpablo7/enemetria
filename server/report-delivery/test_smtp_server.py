@@ -17,6 +17,17 @@ class DeliveryTests(unittest.TestCase):
                             report='SESSAO_ESTRUTURADA_JSON_INICIO test-session: relatório completo')
     def tearDown(self):
         self.temp.cleanup()
+    def test_verified_smtp_login(self):
+        with patch.dict(app.os.environ, SMTP_USER='sender@example.com', SMTP_PASSWORD='test-secret'), patch.object(app.smtplib, 'SMTP_SSL') as factory:
+            server = factory.return_value
+            self.assertIs(app.smtp_connect(), server)
+            args, options = factory.call_args
+            self.assertEqual(args, ('smtp.gmail.com', 465))
+            self.assertTrue(options['context'].check_hostname)
+            self.assertEqual(server.user, 'sender@example.com')
+            self.assertEqual(server.password, 'test-secret')
+            server.auth.assert_called_once_with('LOGIN', server.auth_login, initial_response_ok=False)
+            server.starttls.assert_not_called()
     def test_durable_and_idempotent(self):
         app.enqueue(self.payload)
         app.enqueue(self.payload)
