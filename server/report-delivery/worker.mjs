@@ -27,7 +27,7 @@ export default {
       const data = JSON.parse(new TextDecoder().decode(bytes));
       if (data.consent !== true || typeof data.email !== 'string' || data.email.length > 254 || !/^[^\s@\r\n]+@[^\s@\r\n]+\.[^\s@\r\n]+$/.test(data.email) ||
           typeof data.sessionId !== 'string' || !/^[a-zA-Z0-9:_-]{1,160}$/.test(data.sessionId) ||
-          data.examId !== 'pcpe-agente-2024-02-25' || typeof data.report !== 'string' ||
+          !['pcpe-agente-2024-02-25', 'pcpe-agente-autoral-01'].includes(data.examId) || typeof data.report !== 'string' ||
           !data.report.includes('SESSAO_ESTRUTURADA_JSON_INICIO') || !data.report.includes(data.sessionId)) return reply(400, {accepted: false});
       // Keep an identical payload for retries. Resend deduplicates by session (24h).
       const response = await fetch('https://api.resend.com/emails', {

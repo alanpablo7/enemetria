@@ -13,9 +13,10 @@ function make(options={}){
   querySelector(){return this.children[0]}click(){this.onclick?.()}
   getBoundingClientRect(){return {left:0,right:100,top:0,bottom:100}}
  }
- const get=id=>els[id] ||= new E();const c={window:{scrollTo(){},addEventListener(){}},document:{body:{dataset:{examId:'pcpe-agente-2024-02-25'}},getElementById:get,createElement:t=>new E(t)},Date:class extends Date {constructor(...args){super(...(args.length?args:[now]))}static now(){return now}},setInterval:f=>{interval=f;return 1},clearInterval(){},setTimeout(){},confirm:()=>true,location:{reload(){}},URL:{createObjectURL:blob=>{download=blob;return 'blob:test'},revokeObjectURL(){}},Blob,console,AbortController,clearTimeout(){},fetch:options.fetch};
+ const get=id=>els[id] ||= new E();const c={window:{scrollTo(){},addEventListener(){}},document:{body:{dataset:{examId:options.examId||'pcpe-agente-2024-02-25'}},getElementById:get,createElement:t=>new E(t)},Date:class extends Date {constructor(...args){super(...(args.length?args:[now]))}static now(){return now}},setInterval:f=>{interval=f;return 1},clearInterval(){},setTimeout(){},confirm:()=>true,location:{reload(){}},URL:{createObjectURL:blob=>{download=blob;return 'blob:test'},revokeObjectURL(){}},Blob,console,AbortController,clearTimeout(){},fetch:options.fetch};
  if(options.endpoint)c.window.ENEMETRIA_REPORT_DELIVERY={endpoint:options.endpoint};
- vm.createContext(c);for(const f of ['exams/pcpe-agente-2024/definition.js','exams/pcpe-agente-2024/analysis.js','session-tracker.js','exam-report.js','pcpe.js'])vm.runInContext(fs.readFileSync(path.join(projectRoot,f),'utf8'),c);
+ const examPath=options.examId==='pcpe-agente-autoral-01'?'exams/pcpe-agente-autoral-01':'exams/pcpe-agente-2024';
+ vm.createContext(c);for(const f of [examPath+'/definition.js',examPath+'/analysis.js','session-tracker.js','exam-report.js','pcpe.js'])vm.runInContext(fs.readFileSync(path.join(projectRoot,f),'utf8'),c);
  get('duration').value='270';get('participant-email').value=options.email||'';get('start').click();
  return {get,c,advance:ms=>{now+=ms;interval()},report:async()=>{get('download').click();return await download.text()}};
 }

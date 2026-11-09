@@ -18,6 +18,8 @@ const {createSession} = require('./helpers/fake-browser.cjs');
   global.fetch = async (url, options) => {mail=JSON.parse(options.body); return Response.json({id:'receipt'});};
   assert.equal((await worker.fetch(req(),env)).status,200);
   assert.deepEqual(mail.to,[env.REPORT_TO]); assert.equal(mail.reply_to,payload.email); assert.equal(mail.text.includes(payload.report),true);
+  assert.equal((await worker.fetch(req({...payload,examId:'pcpe-agente-autoral-01'}),env)).status,200);
+  assert.equal((await worker.fetch(req({...payload,examId:'unknown'}),env)).status,400);
   assert.equal((await worker.fetch(req({...payload,consent:false}),env)).status,400);
   assert.equal((await worker.fetch(req(payload,'https://other.test'),env)).status,403);
   assert.equal((await worker.fetch(req(),{})).status,503);

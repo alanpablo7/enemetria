@@ -104,7 +104,10 @@
   }
 
   function table(headers,rows){return '<div class="table-scroll"><table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
-function figure(n){if(n===37){const names=['José','João','Antônio','Francisca','Antônia','Adriana','Juliana'],v=[54529,84113,76348,725642,592815,567968,564706];return '<h3>Planilha 1</h3>'+table(['','A','B'],names.map((x,i)=>[i+1,x,v[i]]))+'<h3>Planilha 2</h3>'+table(names,[v])}if(n===54)return table(['Ocorrências observadas'],[['5 · 7 · 3 · 0 · 2 · 1 · 7 · 8 · 3']]);if(n===59)return table(['Estrato','Tamanho populacional','Desvio padrão'],[['I','50.000',5],['II','80.000',4],['III','120.000',3],['IV','160.000',2],['V','190.000',1],['Total','600.000','—']]);if(n===55){const points='30,68 60,58 90,46 120,52 150,57 180,96 210,126 240,127 270,143 300,156 330,143 360,122 390,94 420,36 450,106 480,147 510,137 540,158';return '<svg class="chart" viewBox="0 0 580 200" role="img" aria-label="Recriação visual do gráfico da taxa de crime em Pernambuco, 2004 a 2021; pico de 57 em 2017 e mínimo de 34 em 2021"><path d="M25 20V165H555" fill="none" stroke="#6c7e96"/><polyline points="'+points+'" fill="none" stroke="#245eb0" stroke-width="2"/>'+Array.from({length:18},(_,i)=>'<text x="'+(30+i*30)+'" y="185" text-anchor="middle" font-size="8">'+(2004+i)+'</text>').join('')+'<text x="412" y="25" font-size="11">57</text><text x="537" y="151" font-size="11">34</text></svg><p class="muted">Recriação visual da figura da prova. Fonte indicada no original: www.sds.pe.gov.br.</p>'}return ''}
+function figure(n){
+  if (questions[n].table) return table(questions[n].table[0], questions[n].table.slice(1));
+  if (exam.kind === 'autoral') return '';
+  if(n===37){const names=['José','João','Antônio','Francisca','Antônia','Adriana','Juliana'],v=[54529,84113,76348,725642,592815,567968,564706];return '<h3>Planilha 1</h3>'+table(['','A','B'],names.map((x,i)=>[i+1,x,v[i]]))+'<h3>Planilha 2</h3>'+table(names,[v])}if(n===54)return table(['Ocorrências observadas'],[['5 · 7 · 3 · 0 · 2 · 1 · 7 · 8 · 3']]);if(n===59)return table(['Estrato','Tamanho populacional','Desvio padrão'],[['I','50.000',5],['II','80.000',4],['III','120.000',3],['IV','160.000',2],['V','190.000',1],['Total','600.000','—']]);if(n===55){const points='30,68 60,58 90,46 120,52 150,57 180,96 210,126 240,127 270,143 300,156 330,143 360,122 390,94 420,36 450,106 480,147 510,137 540,158';return '<svg class="chart" viewBox="0 0 580 200" role="img" aria-label="Recriação visual do gráfico da taxa de crime em Pernambuco, 2004 a 2021; pico de 57 em 2017 e mínimo de 34 em 2021"><path d="M25 20V165H555" fill="none" stroke="#6c7e96"/><polyline points="'+points+'" fill="none" stroke="#245eb0" stroke-width="2"/>'+Array.from({length:18},(_,i)=>'<text x="'+(30+i*30)+'" y="185" text-anchor="middle" font-size="8">'+(2004+i)+'</text>').join('')+'<text x="412" y="25" font-size="11">57</text><text x="537" y="151" font-size="11">34</text></svg><p class="muted">Recriação visual da figura da prova. Fonte indicada no original: www.sds.pe.gov.br.</p>'}return ''}
 
 
   function openQuestion(number) {
@@ -212,7 +215,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
   });
 
   function openEssay(kind) {
-    if (!running || paused || finished || active) return;
+    if (!exam.discursive || !running || paused || finished || active) return;
     tick(); if (finished) return;
     const name = kind === 'draft' ? 'Discursiva — rascunho' : 'Discursiva — versão final';
     active = {kind, start: elapsed, area: name}; order.push({activity: name, event: 'abertura', time: elapsed});
@@ -265,7 +268,7 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
       return '<tr><td>' + esc(name) + '</td><td>' + s.correct + '/' + s.total + '</td><td>' + s.percent + '%</td><td>' + fmt(areaTimes[name] || 0) + '</td></tr>';
     }).join('') + '</tbody></table>';
     const values = Object.values(records), reviewed = values.filter(r => r.visits > 1).length, changes = values.reduce((sum, r) => sum + r.changes, 0);
-    $('strategy').innerHTML = '<div class="strategy-grid">' + [[fmt(elapsed), 'tempo de prova'], [fmt(idle), 'sem atividade aberta'], [reviewed, 'questões reabertas'], [changes, 'mudanças de resposta']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">O relatório TXT inclui a ordem de resolução, os tempos de cada questão e os textos da discursiva.</p>';
+    $('strategy').innerHTML = '<div class="strategy-grid">' + [[fmt(elapsed), 'tempo de prova'], [fmt(idle), 'sem atividade aberta'], [reviewed, 'questões reabertas'], [changes, 'mudanças de resposta']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">O relatório TXT inclui a ordem de resolução, os tempos de cada questão' + (exam.discursive ? ' e os textos da discursiva.' : ', o padrão de construção e o gabarito comentado.') + '</p>';
     renderTraceSummary();
     $('question-results').innerHTML = '<table><thead><tr><th>Questão</th><th>Sua resposta</th><th>Gabarito</th><th>Resultado</th><th>Confiança</th><th>Tempo</th></tr></thead><tbody>' + questionNumbers().map(n => {
       const r = records[n], blank = !r?.answer, correct = r?.answer === answerKey[n];
@@ -278,19 +281,19 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     const summary = window.EnemetriaSessionTracker.summarize(exam, sessionTracker.snapshot());
     const net = summary.netReview;
     const signed = net.netPoints > 0 ? '+' + net.netPoints : String(net.netPoints);
-    $('trace-summary').innerHTML = '<div class="strategy-grid">' + [[net.reviewedQuestions, 'questões respondidas revisadas'], [net.reviewedQuestions ? net.correctAtEnd + '/' + (net.reviewedQuestions - net.withoutKey) : '—', 'acertos finais nas revisadas'], [signed, 'saldo líquido em acertos'], [summary.skips.decisions, 'decisões de pular']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">Tempo acumulado antes das decisões de pular: ' + fmt(summary.skips.totalSeconds) + '. O TXT detalha cada tentativa e cada resposta confirmada. Saldo calculado pelo gabarito preliminar.</p>';
+    $('trace-summary').innerHTML = '<div class="strategy-grid">' + [[net.reviewedQuestions, 'questões respondidas revisadas'], [net.reviewedQuestions ? net.correctAtEnd + '/' + (net.reviewedQuestions - net.withoutKey) : '—', 'acertos finais nas revisadas'], [signed, 'saldo líquido em acertos'], [summary.skips.decisions, 'decisões de pular']].map(([value, label]) => '<div><strong>' + value + '</strong><span>' + label + '</span></div>').join('') + '</div><p class="session-note">Tempo acumulado antes das decisões de pular: ' + fmt(summary.skips.totalSeconds) + '. O TXT detalha cada tentativa e cada resposta confirmada. Saldo calculado pelo ' + (exam.kind === 'autoral' ? 'gabarito autoral.' : 'gabarito preliminar.') + '</p>';
   }
 
   function report() {
     const overall = score(questionNumbers());
-    let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\nBANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate + '\nSESSÃO_ID: ' + sessionTracker.sessionId + '\nVERSÃO_DADOS_SESSÃO: ' + window.EnemetriaSessionTracker.schemaVersion + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
+    let text = 'ENEMetria — ' + exam.title + '\nPROVA_ID: ' + exam.id + '\n' + (exam.kind === 'autoral' ? 'ELABORAÇÃO: ' + exam.board + '\nEDIÇÃO: ' + exam.applicationDate + '\nREFERÊNCIA: PC PE · Cebraspe · aplicação ' + exam.referenceApplicationDate : 'BANCA: ' + exam.board + ' — Edital ' + exam.noticeYear + ' — Aplicação: ' + exam.applicationDate) + '\nSESSÃO_ID: ' + sessionTracker.sessionId + '\nVERSÃO_DADOS_SESSÃO: ' + window.EnemetriaSessionTracker.schemaVersion + '\nVERSÃO_CONTEÚDO: ' + exam.contentVersion + '\nVERSÃO_ANÁLISE: ' + exam.analysis.analysisVersion + '\nCorreção: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version + '\nCadernos: ' + exam.answerKeyInfo.p1 + ' (P1) / ' + exam.answerKeyInfo.p2 + ' (P2)\nInício UTC: ' + startedAt + '\nConclusão UTC: ' + finishedAt + '\n\n';
     text += 'CONTATO PARA DEVOLUTIVA: ' + (participantEmail || 'Não informado') + '\n\n';
     text += 'Acertos: ' + overall.correct + '/60 (' + overall.percent + '%)\nErros: ' + overall.wrong + '\nEm branco: ' + overall.blank + '\nTempo de prova: ' + fmt(elapsed) + '\nPausas: ' + fmt(pauseTime) + '\nSem atividade aberta: ' + fmt(idle) + '\n\nDESEMPENHO POR BLOCO E DISCIPLINA\n';
     for (const [label, nums] of [['P1', questionNumbers('P1')], ['P2', questionNumbers('P2')], ...subjects.map(s => [s, Object.values(questions).filter(q => q.subject === s).map(q => q.number)])]) {
       const s = score(nums); text += label + ': ' + s.correct + '/' + s.total + ' acertos (' + s.percent + '%), ' + s.wrong + ' erros, ' + s.blank + ' em branco.\n';
     }
     text += '\nTEMPO POR ÁREA\n' + Object.entries(areaTimes).map(([name, time]) => name + ': ' + fmt(time)).join('\n');
-    text += '\n\nQUESTÕES\nNº | Resposta | Gabarito preliminar | Resultado | Confiança | Tempo total | Até primeira escolha | Após seleção (acumulado) | Reaberturas | Tempo de revisão | Trocas\n';
+    text += '\n\nQUESTÕES\nNº | Resposta | ' + (exam.kind === 'autoral' ? 'Gabarito autoral' : 'Gabarito preliminar') + ' | Resultado | Confiança | Tempo total | Até primeira escolha | Após seleção (acumulado) | Reaberturas | Tempo de revisão | Trocas\n';
     for (const n of questionNumbers()) {
       const r = records[n];
       text += [n, r?.answer || 'em branco', answerKey[n], !r?.answer ? 'em branco' : r.answer === answerKey[n] ? 'acerto' : 'erro', r?.confidence || '—', fmt(r?.time || 0), r?.firstChoice == null ? '—' : fmt(r.firstChoice), fmt(r?.afterSelection || 0), Math.max(0, (r?.visits || 0) - 1), fmt(r?.reviewTime || 0), r?.changes || 0].join(' | ') + '\n';
@@ -299,7 +302,8 @@ function figure(n){if(n===37){const names=['José','João','Antônio','Francisca
     const sessionTrace = sessionTracker.snapshot();
     text += window.EnemetriaReports.buildTraceSection(exam, {sessionTrace, startedAt, finishedAt, elapsedSeconds: elapsed, pauseSeconds: pauseTime, idleSeconds: idle});
     text += '\nORDEM DE RESOLUÇÃO\n' + order.map(o => fmt(o.time) + ' | ' + o.activity + ' | ' + o.event).join('\n');
-    const performanceReport = text + '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática. Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
+    const essayReport = exam.discursive ? '\n\nDISCURSIVA — RASCUNHO\n' + (draft || 'Não registrado.') + '\n\nDISCURSIVA — VERSÃO FINAL\n' + (finalText || 'Não registrada.') + '\n\nDiscursiva sem nota automática.' : '\n\nSimulado autoral com 60 questões objetivas.';
+    const performanceReport = text + essayReport + ' Percentuais sobre todas as questões de cada bloco ou disciplina.\n';
     return performanceReport + window.EnemetriaReports.buildAppendix(exam, {records, order, sessionTrace});
   }
 

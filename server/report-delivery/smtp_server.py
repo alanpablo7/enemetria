@@ -68,7 +68,7 @@ def validate(data):
         raise ValueError('email')
     if not isinstance(session, str) or not re.fullmatch(r'[a-zA-Z0-9:_-]{1,160}', session):
         raise ValueError('session')
-    if data.get('examId') != 'pcpe-agente-2024-02-25' or not isinstance(report, str) or session not in report or 'SESSAO_ESTRUTURADA_JSON_INICIO' not in report:
+    if data.get('examId') not in ('pcpe-agente-2024-02-25', 'pcpe-agente-autoral-01') or not isinstance(report, str) or session not in report or 'SESSAO_ESTRUTURADA_JSON_INICIO' not in report:
         raise ValueError('report')
     return email, session, report
 

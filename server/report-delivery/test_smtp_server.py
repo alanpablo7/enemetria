@@ -17,6 +17,12 @@ class DeliveryTests(unittest.TestCase):
                             report='SESSAO_ESTRUTURADA_JSON_INICIO test-session: relatório completo')
     def tearDown(self):
         self.temp.cleanup()
+    def test_authoral_and_official_exam_ids(self):
+        for exam_id in ('pcpe-agente-2024-02-25', 'pcpe-agente-autoral-01'):
+            self.assertEqual(app.validate(dict(self.payload, examId=exam_id))[1], 'test-session')
+        with self.assertRaises(ValueError):
+            app.validate(dict(self.payload, examId='unknown-exam'))
+
     def test_verified_smtp_login(self):
         with patch.dict(app.os.environ, SMTP_USER='sender@example.com', SMTP_PASSWORD='test-secret'), patch.object(app.smtplib, 'SMTP_SSL') as factory:
             server = factory.return_value

@@ -1,6 +1,6 @@
 # Provas e relatórios
 
-Cada prova tem um ID estável com concurso, cargo e data de aplicação. A única prova cadastrada é `pcpe-agente-2024-02-25`.
+Cada prova tem um ID estável com concurso, cargo e data de aplicação. Estão cadastradas a prova oficial `pcpe-agente-2024-02-25` e o simulado `pcpe-agente-autoral-01`.
 
 ## Organização
 
@@ -50,3 +50,13 @@ O saldo líquido de revisão é calculado por questão, comparando a resposta na
 O TXT contém resumos factuais, histórico de confirmações, decisões individuais de pular, registro de todas as tentativas e um bloco `SESSAO_ESTRUTURADA_JSON_INICIO` / `SESSAO_ESTRUTURADA_JSON_FIM`. O JSON inclui metadados da sessão/prova/gabarito, rastreamento bruto e resumos derivados. Referências ao histórico ficam em cada ficha `DESEMPENHO_OBSERVADO_JSON` do anexo pedagógico. Eventos antigos não são reconstruídos a partir de contadores agregados: sem rastreamento compatível, os vínculos ficam null.
 
 Verificações de rastreamento: `node tests/session-tracker.test.cjs` e `node tests/session-integration.test.cjs`. O segundo teste gera um relatório demonstrativo em `../output/pcpe-relatorio-revisoes-exemplo.txt`, com dados fictícios.
+
+## Simulado autoral 01
+
+A seleção em pcpe.html usa o catálogo e o parâmetro prova. Sem um ID conhecido, carrega a prova oficial. O ID selecionado é definido antes da inicialização do simulador e do rastreamento.
+
+O banco autoral reproduz as questões e a numeração do PDF revisado. P1 compreende 1–10 e 31–40. P2 compreende 11–30 e 41–60. Os itens 11–14 usam o mesmo texto. O caderno contém apenas objetivas.
+
+A análise autoral registra molde, assunto de referência, estimativas de dificuldade/tempo e gabarito comentado de cada alternativa. Esses dados entram no TXT após a conclusão. As tabelas do caderno são dados da própria questão, enquanto as figuras da prova oficial continuam no renderizador original.
+
+Execute também node tests/authoral-exam.test.cjs. Ao adicionar outro ID, incluir esse ID na lista aceita pelo serviço de relatórios efetivamente publicado.

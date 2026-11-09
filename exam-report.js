@@ -96,7 +96,7 @@
     const a = exam.analysis, numbers = sortedNumbers(exam);
     const lines = ['','', '=== ANÁLISE PEDAGÓGICA DA PROVA — CONTEXTO PARA IA ===',
       'PROVA_ID: ' + exam.id, 'TÍTULO: ' + exam.title, 'BANCA: ' + exam.board,
-      'APLICAÇÃO: ' + exam.applicationDate, 'VERSÃO_CONTEÚDO: ' + exam.contentVersion,
+      (exam.kind === 'autoral' ? 'EDIÇÃO: ' : 'APLICAÇÃO: ') + exam.applicationDate, 'VERSÃO_CONTEÚDO: ' + exam.contentVersion,
       'SHA256_CONTEÚDO: ' + exam.contentSha256, 'VERSÃO_ANÁLISE: ' + a.analysisVersion,
       'VERSÃO_ESQUEMA: ' + a.schemaVersion, 'DATA_ANÁLISE: ' + a.preparedAt,
       'GABARITO: ' + exam.answerKeyInfo.label + ' | versão ' + exam.answerKeyInfo.version,
@@ -134,6 +134,17 @@
         'RISCO_DE_ERRO_A_INVESTIGAR: ' + item.pitfall,
         'USO_DIAGNÓSTICO: ' + item.diagnosticUse + '.',
         'FONTES: ' + item.sourceIds.join(', ') + '.');
+      if (item.construction && item.solution) {
+        const q = exam.questions[n], pattern = item.construction, solution = item.solution;
+        lines.push('MOLDE_ORIGINAL: Q' + pattern.originalTemplate + ' | ASSUNTO_ORIGINAL: Q' + pattern.originalTopic,
+          'CONSTRUÇÃO_AUTORAL: ' + pattern.description);
+        if (q.context) lines.push('CONTEXTO: ' + q.context);
+        if (q.table) lines.push('TABELA: ' + JSON.stringify(q.table));
+        lines.push('ENUNCIADO: ' + q.prompt);
+        q.choices.forEach((choice, index) => lines.push(String.fromCharCode(65 + index) + ') ' + choice));
+        lines.push('GABARITO_AUTORAL: ' + solution.answer, 'JUSTIFICATIVA: ' + solution.explanation);
+        solution.alternatives.forEach(option => lines.push('COMENTÁRIO ' + option.letter + ': ' + option.explanation));
+      }
       for (const alert of item.alerts) lines.push('ALERTA_MATERIAL [' + alert.severity + ' / ' + alert.type + ']: ' + alert.message);
       lines.push('DESEMPENHO_OBSERVADO_JSON: ' + JSON.stringify(observed(exam, n, run.records || {}, run.sessionTrace || null)));
     }
